@@ -1,0 +1,1844 @@
+-- Query 1: Extract dump of reports from batch and report table based on FIUREID passed (Oracle SQL) using batch table
+
+-- Filters include:
+-- 1) To include/exclude isolated reports
+-- 2) To include/exclude deleted and replaced reports
+-- 3) To check report format type from STR,CTR,etc
+-- 4) To include/exclude GOS with character limit less than 500
+
+select coalesce(rr.recategory,b.recategory) as recategory,b.fiureid,coalesce(rr.entityname,b.entityname) as entityname,B.BATCHID,R.RPTSERNUM,r.mainpersonname,  r.GROUNDSOFSUSP,b.reporttype  from fincorebackup1.BATCH b
+inner join fincorebackup1.report r
+on b.batchid=r.batchid and b.fiureid in ('BAOTH00016','FICSO00029','BAOTH00011') --enter fiureid here
+
+left join  FINCORE_PHASE2.re rr on rr.fiureid=b.fiureid
+left join  FINCORE_PHASE2.recategory rc on rc.recategory=rr.recategory
+--where b.batchid not in (select distinct originalbatchid from fincorebackup1.batch  union select distinct batchid from fincorebackup1.batch b2 where  batchtype ='D') 
+--WHERE (b.batchid,r.RPTSERNUM) not in (select distinct batchid,REPORTSERIALNUM from fincore_phase2.casecontrol where status in ('E','I','H'))
+--where b.reporttype = 'STR'
+--and length(r.GROUNDSOFSUSP)< 500
+
+group by coalesce(rr.recategory,b.recategory), b.fiureid  ,coalesce(rr.entityname,b.entityname),B.BATCHID,R.RPTSERNUM,r.GROUNDSOFSUSP,b.reporttype
+
+---------------------------------------------------
+-- Query 2: Extract new,replaced and deleted batches and reports from batch and report table based on FIUREID passed (Oracle SQL) using brgate table
+
+-- Filters include:
+-- 1) To include/exclude isolated reports
+-- 2) To include/exclude deleted and replaced reports
+
+select fiureid,wm_concat(distinct entityname)entityname,wm_concat(distinct recategory)recategory,--wm_concat(distinct recategorydesc)entityname,
+sum(case when batchTYPE='N' then Batch_Count  else 0 end) as new_batch,
+sum(case when batchTYPE='N' then Report_Count  else 0 end) as new_report,
+sum(case when batchTYPE='R' then Batch_Count  else 0 end) as Replaced_batch,
+sum(case when batchTYPE='R' then Report_Count  else 0 end) as Replaced_report,
+sum(case when batchTYPE='D' then Batch_Count  else 0 end) as Deleted_batch,
+sum(case when batchTYPE='D' then Report_Count  else 0 end) as Deleted_report
+
+from
+(
+
+select b.fiureid,b.entityname, b.recategory,rc.recategorydesc, batchtype,count(distinct b.batchid) batch_count, count(distinct b.batchid||rptsernum)report_count from fincorebackup1.brgate b
+inner join fincorebackup1.report r on b.batchid=r.batchid and b.fiureid in ('FICSO00029','FINBF01107','FINBF05843','FICSO00033') --enter fiureid here
+left join  FINCORE_PHASE2.recategory rc on rc.recategory=b.fiureid
+--where fiureid not in ( 'XXXXX00001', 'XXXXX99999','XXXXXXXXXX') 
+--and b.batchid not in (select originalbatchid from fincorebackup1.batch where batchtype in ('D','R') union select batchid from fincorebackup1.batch b2 where  batchtype ='D') 
+--and b. batchid not in (select distinct batchid from fincore_phase2.casecontrol where status in ('E','I','H'))
+--from fincorebackup1.batch b
+
+group by b.fiureid,b.entityname, b.recategory, b.batchtype,rc.recategorydesc 
+)tab1
+group by fiureid
+
+-----------------------------------------------------------------
+--Query 3: Give Year on Year(YoY) breakup for all types of reports filed based on FIUREID passed (Oracle SQL) using brgate table
+
+-- Filters include:
+-- 1) To include/exclude isolated reports
+-- 2) To include/exclude deleted and replaced reports
+
+
+select fiureid,wm_concat(distinct entityname)entityname,wm_concat(distinct recategory)recategory,wm_concat(distinct recategorydesc)entityname,
+
+sum(case when REPORTTYPE='STR' and yr=21 then report_count  else 0 end) as STR_21,
+sum(case when REPORTTYPE='EFT' and yr=21 then report_count  else 0 end) as EFT_21,
+sum(case when REPORTTYPE='NTR' and yr=21 then report_count  else 0 end) as NTR_21,
+sum(case when REPORTTYPE='CTR' and yr=21 then report_count  else 0 end) as CTR_21,
+sum(case when REPORTTYPE='CCR' and yr=21 then report_count  else 0 end) as CCR_21,
+sum(case when REPORTTYPE='STR' and yr=22 then report_count  else 0 end) as STR_22,
+sum(case when REPORTTYPE='EFT' and yr=22 then report_count  else 0 end) as EFT_22,
+sum(case when REPORTTYPE='NTR' and yr=22 then report_count  else 0 end) as NTR_22,
+sum(case when REPORTTYPE='CTR' and yr=22 then report_count  else 0 end) as CTR_22,
+sum(case when REPORTTYPE='CCR' and yr=22 then report_count  else 0 end) as CCR_22
+from
+(
+
+select b.fiureid,b.entityname, b.recategory,rc.recategorydesc,substr(b.batchid,1,2) yr, b.batchtype,b.reporttype,count(distinct b.batchid) batch_count, count(distinct b.batchid||r.rptsernum)report_count
+from fincorebackup1.brgate b
+inner join fincorebackup1.report r on b.batchid=r.batchid and fiureid in () --enter fiureid here
+left join  FINCORE_PHASE2.recategory rc on rc.recategory=b.fiureid
+--where (b.batchid,r.rptsernum) not in (select distinct batchid,reportserialnum from fincore_phase2.casecontrol cs where status in ('E','I','H'))
+--and b.batchid not in (select originalbatchid from fincorebackup1.batch where batchtype in ('D','R') union select batchid from fincorebackup1.batch b2 where  batchtype ='D') 
+group by b.fiureid,b.entityname, b.recategory, b.batchtype,rc.recategorydesc,substr(b.batchid,1,2),b.reporttype
+)tab1
+group by fiureid
+
+-----------------------------------------------------------------
+-- Query 4: Give details related to PO like email,mobile number, number of digits in mobile number RE based on FIUREID passed (Oracle SQL) using batch table
+
+select distinct fiureid,entityname,recategory, PONAME, POMOBILE, length(POMOBILE),POEMAIL from fincorebackup1.batch
+where fiureid='FICSO00045' --enter fiureid here
+
+----------------------------------------------------------------
+--Query 5: Breakup for all types of report format types based on FIUREID passed (Oracle SQL) using brgate table
+
+-- Filters include:
+-- 1) To include/exclude isolated reports
+-- 2) To include/exclude deleted and replaced reports
+-- 3) To include/exclude reports from invalid FIUREIDs
+
+with batch_selected as
+
+(
+select batchid,entityname,fiureid,reporttype from fincorebackup1.batch WHERE reporttype in ('CTR','NTR','EFT')  and fiureid not in ( 'XXXXX00001', 'XXXXX99999','XXXXXXXXXX') 
+and b.batchid not in (select originalbatchid from fincorebackup1.batch where batchtype in ('D','R') union select batchid from fincorebackup1.batch b2 where  batchtype ='D') 
+and b. batchid not in (select distinct batchid from fincore_phase2.casecontrol where status in ('E','I','H')) and fiureid='FICSO00045' 
+)
+
+select z.fiureid, z.entityname ,
+sum(case when z.reporttype='CTR' then No_of_Reports else 0 end) as CTR,
+sum( case when z.reporttype = 'NTR' then No_of_Reports else 0 end) as NTR,
+sum( case when z.reporttype = 'EFT' then No_of_Reports else 0 end) as EFT
+From
+
+(select upper(coalesce(rr.entityname,b.entityname)) as entityname, b.fiureid,b.reporttype,count(distinct r.batchid||r.rptsernum) as No_of_Reports
+ from fincorebackup1.report r 
+inner join batch_selected b on b.batchid=r.batchid 
+left join  FINCORE_PHASE2.re rr on rr.fiureid=b.fiureid
+where (not exists (select 1 from fincorebackup1.arftrn t where r.batchid=t.batchid and r.rptsernum=t.rptsernum)
+and  not exists (select 1 from fincorebackup1.trftrn t where r.batchid=t.batchid and r.rptsernum=t.rptsernum))
+group by upper(coalesce(rr.entityname,b.entityname)), b.fiureid,b.reporttype )z
+
+group by z.fiureid, z.entityname
+
+----------------------------------------------------------------
+--Query 6: Dump of all reports which have GOS as null based on FIUREID passed (Oracle SQL) using batch table
+
+-- Filters include:
+-- 1) To include/exclude isolated reports
+-- 2) To include/exclude deleted and replaced reports
+-- 3) To include/exclude reports from invalid FIUREIDs
+
+select coalesce(rr.recategory,b.recategory) as recategory,b.fiureid,coalesce(rr.entityname,b.entityname) as entityname,B.BATCHID,R.RPTSERNUM,  r.GROUNDSOFSUSP,b.reporttype  from fincorebackup1.BATCH b
+inner join fincorebackup1.report r on r.batchid=b.batchid where b.reporttype='Null' and fiureid='FICSO00045' --enter FIUREID here
+
+----------------------------------------------------------------------------
+--Query 7: Check for reports with transaction amount greater than 100 crores, (Oracle SQL) tables used are arftrn and trftrn
+
+-- Filters include:
+-- 1) To include/exclude isolated reports
+-- 2) To include/exclude deleted and replaced reports
+-- 3) To include/exclude reports from invalid FIUREIDs
+-- 4) Filter reports based on report types
+
+select entityname,b.fiureid, b.reporttype,recategory, zz.amount ,count(distinct b.batchid||r.rptsernum) as Count_Below_Threshold from fincorebackup1.batch b
+inner join fincorebackup1.report r on b.batchid = r.batchid and b.fiureid in ('FICSO00049') --enter FIUREID here
+AND b.batchid not in (select originalbatchid from fincorebackup1.batch  WHERE batchtype in ('D','R') union select batchid from fincorebackup1.batch b2 where  batchtype ='D')
+and b. batchid not in (select distinct batchid from fincore_phase2.casecontrol where status in ('E','I','H')) and reporttype ='STR'
+inner join  
+(select batchid, rptsernum, sum(AMOUNT) as Amount from fincorebackup1.arftrn 
+group by batchid, rptsernum
+union
+select batchid, rptsernum,sum(AMOUNTRUPEES) as Amount from fincorebackup1.trftrn
+group by batchid, rptsernum
+)zz
+on r.batchid=zz.batchid and r.rptsernum = zz.RPTSERNUM
+and zz.amount> 1000000000
+
+group by entityname,b.fiureid, b.reporttype,recategory, zz.amount
+
+------------------------------------------------
+--Query 8: Check for reports with missing mainperson names, (Oracle SQL) table used is batch
+
+-- Filters include:
+-- 1) To include/exclude isolated reports
+-- 2) To include/exclude deleted and replaced reports
+-- 3) To include/exclude reports from invalid FIUREIDs
+
+select coalesce(rr.entityname,b.entityname) as entityname,coalesce(rr.recategory,b.recategory) as recategory,rc.recategorydesc,count( distinct b.batchid||r.rptsernum) as reports_with_mainperson_null  from fincorebackup1.batch b join
+fincorebackup1.report r on b.batchid=r.batchid 
+--and b.fiureid in ('FICSO00038') --enter FIUREID here
+--AND b.batchid not in (select distinct originalbatchid from fincorebackup1.batch  union select distinct batchid from fincorebackup1.batch b2 where  batchtype ='D') 
+--and (b.batchid,r.RPTSERNUM) not in (select distinct batchid,REPORTSERIALNUM from fincore_phase2.casecontrol where status in ('E','I','H'))
+and mainpersonname is null
+left join  FINCORE_PHASE2.re rr on rr.fiureid=b.fiureid
+left join  FINCORE_PHASE2.recategory rc on rc.recategory=rr.recategory
+group by coalesce(rr.entityname,b.entityname) ,coalesce(rr.recategory,b.recategory),rc.recategorydesc
+
+-------------------------------------------------
+--Query 9: Check for reports with missing PAN,email and mobile number (Oracle SQL) table used is brgate,arfinp and arflpe
+
+-- Filters include:
+-- 1) To include/exclude isolated reports
+-- 2) To include/exclude deleted and replaced reports
+-- 3) To include/exclude reports from invalid FIUREIDs
+
+with str_batch1 as(select distinct b.batchid,r.rptsernum,b.fiureid,b.entityname from fincorebackup1.brgate b join
+fincorebackup1.report r on b.batchid=r.batchid and b.fiureid in ('BAOTH00008') --enter FIUREID here
+AND b.batchid not in (select distinct originalbatchid from fincorebackup1.batch  union select distinct batchid from fincorebackup1.batch b2 where  batchtype ='D') 
+),
+
+str_batch as
+(
+select distinct b.batchid,b.rptsernum,b.fiureid,b.entityname from str_batch1 b inner join (
+select distinct batchid,rptsernum from str_batch1 minus 
+select distinct batchid,REPORTSERIALNUM from  fincore_phase2.casecontrol where  status in ('E','I','H')) c on b.batchid=c.batchid and b.rptsernum=c.rptsernum
+)
+
+select distinct s.fiureid,i.batchid,i.rptsernum,pan,mobile,personname,email,accountnum, 'arfinp' as table_name from fincorebackup1.arfinp i inner join str_batch s on i.batchid=s.batchid and i.rptsernum=s.rptsernum 
+union 
+select distinct s.fiureid,i.batchid,i.rptsernum,pan,mobile,personname,email,accountnum ,'arflpe' as table_name from fincorebackup1.arflpe i inner join str_batch s on i.batchid=s.batchid and i.rptsernum=s.rptsernum 
+union
+select distinct s.fiureid,i.batchid, i.rptsernum, pan ,mobile ,  CUSTOMERNAME as personname , email, accountnum, 'trftrn' as table_name from fincorebackup1.trftrn i inner join str_batch s on i.batchid=s.batchid and i.rptsernum=s.rptsernum
+
+----------------------------------------------------------
+--Query 10: Check for reports which are currently placed under isolation table (Oracle SQL) table used is casecontrol based on FIUREID
+
+-- Filters include:
+-- 1) To include/exclude reports from invalid FIUREIDs
+-- 2) To filter reports on basis of batch type
+
+select r.fiureid,count(distinct cs.batchid||cs.reportserialnum) from fincore_phase2.casecontrol cs 
+inner join fincorebackup1.brgate r
+on cs.batchid=r.batchid
+where r.fiureid in ('ZZZZZ00034') --enter FIUREID here
+and cs.status in ('E','I','H')
+--and batchtype='R'
+group by r.fiureid
+
+----------------------------------------------------------
+--Query 11: Clustering all duplicate GOS for a given FIUREID to get reports that have duplicate GOS (POSTGRES SQL) based on FIUREID
+
+SELECT b.cluster_no,a.*,b.dup_no
+	FROM public.data_extracted a inner join  (
+select row_number() over ( order by dup_no desc) cluster_no, * from (
+SELECT groundsofsusp,count(1) dup_no
+	FROM public.data_extracted group by 1 having count(1)>1) b)b on a.groundsofsusp=b.groundsofsusp order by  b.cluster_no
+
+------------------------------------------------------------
+--Query 12: check if batchid,repsernum for a given fiureid in case dissemination table
+
+with exception as (select distinct batchid,REPORTSERIALNUM from fincore_phase2.casecontrol where status in ('E','I','H')),
+finc as (select * from fincore_phase2.fincase 
+where fiureidagencyid in ()
+)
+select rr.recategory,rr.entityname,a.*,case when casestatus='D' and caseaction='D' then 'DISSEMINATED' else 'NOT DISSEMINATED' end as dissemination_status from finc a left join exception b on a.batchid=b.batchid and a.reportrequestserialnum=b.REPORTSERIALNUM
+left join  FINCORE_PHASE2.re rr on rr.fiureid=a.fiureidagencyid
+left join  FINCORE_PHASE2.recategory rc on rc.recategory=rr.recategory
+where b.batchid is null and b.REPORTSERIALNUM is null
+
+------------------------------------------------------------------
+Query 13: check and remove isolatedreports
+
+with exception as (select distinct batchid,REPORTSERIALNUM from fincore_phase2.casecontrol where status in ('E','I','H')),
+sbatch  as (select a.batchid,b.rptsernum ,REPORTTYPE,FIUREID from fincorebackup1.batch a inner join fincorebackup1.report b on a.batchid=b.batchid and fiureid in ()  and (b.batchid,b.rptsernum) not in (select batchid,REPORTSERIALNUM from exception))
+select B.* from fincore_phase2.fincase a RIGHT join  sbatch b on a.batchid=b.batchid and b.rptsernum=a.reportrequestserialnum WHERE A.BATCHID IS NULL AND A.reportrequestserialnum IS NULL
+
+------------------------------------------------------------------
+--Check which reports have disseminated and non disseminated reports
+
+with exception as (select distinct batchid,REPORTSERIALNUM from fincore_phase2.casecontrol where status in ('E','I','H')),
+finc as (select * from fincore_phase2.fincase 
+where fiureidagencyid in ('FIAPR01051')
+)
+select a.*,case when casestatus='D' and caseaction='D' then 'DISSEMINATED' else 'NOT DISSEMINATED' end as dissemination_status from finc a left join exception b on a.batchid=b.batchid and a.reportrequestserialnum=b.REPORTSERIALNUM
+where b.batchid is null and b.REPORTSERIALNUM is null
+
+-----------------------------------------
+--Check GOS and DOI less than 500
+
+select  recategory,b.fiureid, entityname,B.BATCHID,R.RPTSERNUM,r.GROUNDSOFSUSP, r.DETAILSOFINVESTIGATIONS from fincorebackup1.BATCH b 
+inner join fincorebackup1.report r on b.batchid=r.batchid  where b.reporttype = 'STR' and (LENGTH(NVL(GROUNDSOFSUSP,0)) +LENGTH(NVL(DETAILSOFINVESTIGATIONS,0)))< 500 
+and b.batchid between 2205010000 and 2205319999 
+group by b.recategory, b.fiureid  ,b.entityname,B.BATCHID,R.RPTSERNUM,r.GROUNDSOFSUSP,r.DETAILSOFINVESTIGATIONS 
+-------------------------------------------
+--Connection to postgres from python
+
+import pandas as pd
+import numpy as np
+import psycopg2
+from sqlalchemy import create_engine
+
+pengine=create_engine('postgresql+psycopg2://postgres:postgres@localhost:5432/postgres')
+df = pd.read_csv(r'Z:\cleandata15sept2022.csv',encoding='latin1')
+#df.columns = [x.lower() for x in df.columns]
+
+df.to_sql(name='fundflow_cleandata15sept2022',con=pengine,if_exists='append',index=False,schema='rfi_study')
+------------------------------------------
+--Select aggregated person name from arfinp
+
+select batchid,rptsernum,listagg(personname,',') within group (order by batchid) as names from (
+select distinct batchid,rptsernum,personname from arfinp where (batchid,rptsernum) in (('2205318232','324010')))z
+group by z.batchid,z.rptsernum
+--------------------------------------------
+Fuzzy Wuzzy
+
+d={}
+test=[]
+for i in payment_ent_name_sheet: #to be check file
+    matches_list=process.extractBests(i, re_name(#master file) ,scorer=fuzz.token_sort_ratio,score_cutoff=90)
+    if matches_list!=[]:
+        d[i]=matches_list
+    for i in matches_list:
+        if i in re_name:
+            re_name.remove(i)
+
+matched_items=list(d.items())
+test=[]
+for k in matched_items:
+    test.append(k[0])
+print(list(set(test)))
+
+-----------------------------------------
+To search for specific keywords in GOS
+
+select * from(
+select b.batchid,r.rptsernum,r.groundsofsusp,r.detailsofinvestigations,b.fiureid,r.mainpersonname,b.entityname from batch b
+inner join report r on b.batchid=r.batchid
+where b.batchid between 2004010000 and 2206069999
+and ( upper(r.groundsofsusp) like ('%ONLINE%') and (upper(r.groundsofsusp) like (' %GAME% ') or upper(r.groundsofsusp) like ('%GAMING%'))
+or upper(r.detailsofinvestigations) like ('%ONLINE%') and (upper(r.detailsofinvestigations) like (' %GAME% ') or upper(r.detailsofinvestigations) like ('%GAMING%') )))x
+-------------------------------------------------
+
+=TRIM(MID(SUBSTITUTE($A2,";",REPT(" ",LEN($A2))),(C$1-1)*LEN($A2)+1,LEN($A2)))
+
+---------------------------------------------------
+
+## To concatenate batchid rptsernum
+="('"&A1&"',"&"'"&B1&"'),"
+
+---------------------------------------------------
+## Query batchid||rptsernum wise pan,concat pan, person name and occupation
+
+with cte1 as
+(
+select distinct batchid,rptsernum, occupation as occupation_names, personname as person_names,pan from arfinp where (batchid,rptsernum) in ()
+union
+select distinct batchid,rptsernum, natureofbusiness as occupation_names, personname as person_names, pan from arflpe where (batchid,rptsernum) in ()
+union
+select distinct batchid,rptsernum,  occupation as occupation_names,customername as person_names, pan from trftrn where (batchid,rptsernum) in ()
+)
+select distinct batchid,rptsernum,wm_concat(distinct occupation_names) as occupation_names,count(distinct occupation_names) as occupation_names_count,wm_concat(distinct person_names) as person_names,count(distinct person_names) as person_names_count,wm_concat(distinct pan) as pan,count(distinct pan) as pan_count from cte1
+--where pan is not null
+group by batchid,rptsernum
+
+------------------------------------------------------
+## Query pan wise batchid||rtpsernum,concat pan, person name and occupation
+
+with cte1 as
+(
+select distinct pan, occupation as occupation_names, personname as person_names, batchid||'-'||rptsernum as batch_concat from arfinp where (pan,1) in ()
+and (batchid,rptsernum) in ()
+union
+select distinct pan, natureofbusiness as occupation_names, personname as person_names, batchid||'-'||rptsernum as batch_concat from arflpe where (pan,1) in ()
+and (batchid,rptsernum) in ()
+union
+select distinct pan, occupation as occupation_names ,customername as person_names,batchid||'-'||rptsernum as batch_concat from trftrn where (pan,1) in ()
+and (batchid,rptsernum) in ()
+)
+select pan,wm_concat(distinct batch_concat),count(distinct batch_concat) as batch_count,wm_concat(distinct occupation_names),count(distinct occupation_names) as occupation_count,wm_concat(distinct person_names),count(distinct person_names) as person_count from cte1
+group by pan
+order by batch_count desc
+
+------------------------------------------------------
+--For single batchid rptsernum wise grouping
+
+with cte1 as
+(
+select distinct batchid,rptsernum, occupation as occupation_names, personname as person_names,pan from arfinp where (batchid,rptsernum) in (select '2205193683','322623' from dual)
+union
+select distinct batchid,rptsernum, natureofbusiness as occupation_names, personname as person_names, pan from arflpe where (batchid,rptsernum) in (select '2205193683','322623' from dual)
+union
+select distinct batchid,rptsernum,  occupation as occupation_names,customername as person_names, pan from trftrn where (batchid,rptsernum) = (select '2205193683','322623' from dual)
+)
+select distinct batchid,rptsernum,wm_concat(distinct occupation_names) as occupation_names,count(distinct occupation_names) as occupation_names_count,wm_concat(distinct person_names) as person_names,count(distinct person_names) as person_names_count,wm_concat(distinct pan) as pan,count(distinct pan) as pan_count from cte1
+where pan is not null
+group by batchid,rptsernum
+--order by pan_count desc
+
+------------------------------------------------------
+--Present in batchid but not in report
+select * from (
+select  distinct fiureid,b.batchid as bb,r.batchid as rr from batch b 
+left join report r on b.batchid=r.batchid 
+where  fiureid in () --enter FIUREID here
+and b.batchid between 2001010000 and 2206069999)
+where rr is null
+--------------------------------
+---Dump of data
+select b.batchid,b.fiureid,r.rptsernum,b.entityname from batch b 
+join report r on b.batchid=r.batchid
+--where b.batchid between 2001010000 and 2206069999
+and b.fiureid='FIAPR01249' --enter FIUREID here
+------------------------------
+---Missing mainperson name
+
+select b.batchid,r.rptsernum,count( distinct b.batchid||r.rptsernum) as reports_with_mainperson_null,b.fiureid,b.entityname from fincorebackup1.batch b join report r on b.batchid=r.batchid 
+where b.fiureid in () --enter FIUREID here
+--AND b.batchid not in (select distinct originalbatchid from fincorebackup1.batch  union select distinct batchid from fincorebackup1.batch b2 where  batchtype ='D') 
+--and (b.batchid,r.RPTSERNUM) not in (select distinct batchid,REPORTSERIALNUM from fincore_phase2.casecontrol where status in ('E','I','H'))
+and mainpersonname is null
+--and b.batchid between 2001010000 and 2206069999
+--left join  FINCORE_PHASE2.re rr on rr.fiureid=b.fiureid
+--left join  FINCORE_PHASE2.recategory rc on rc.recategory=rr.recategory
+group by b.batchid,r.rptsernum,b.fiureid,b.entityname
+-----------------------------------
+---GOS+DOI less than 500 chracters
+select  B.BATCHID,R.RPTSERNUM,b.fiureid, entityname,b.reporttype,r.GROUNDSOFSUSP, r.DETAILSOFINVESTIGATIONS from fincorebackup1.BATCH b 
+inner join fincorebackup1.report r on b.batchid=r.batchid  --where (LENGTH(NVL(GROUNDSOFSUSP,0)) +LENGTH(NVL(DETAILSOFINVESTIGATIONS,0)))< 500 
+--and b.batchid between 2001010000 and 2206069999 --and b.reporttype = 'STR' 
+and b.fiureid in ('FIAPR01249')
+group by b.recategory, b.fiureid  ,b.entityname,B.BATCHID,R.RPTSERNUM,r.GROUNDSOFSUSP,r.DETAILSOFINVESTIGATIONS,b.reporttype
+--------------------------------
+--Delay in filing (after 15th of next month in CTR)
+with cte2 as(select distinct b.batchid,reportserialnum from fincore_phase2.casecontrol c join batch b 
+on c.batchid=b.batchid and status in ('E','I','H') 
+and b.batchid between 2001010000 and 2206069999
+--left outer join FINCORE_PHASE2.re fre on fre.fiureid=b.fiureid
+and b.reporttype='CTR'
+union
+select distinct b.batchid,reportserialnum from fincore_phase2.casecontrolerror c join fincorebackup1.batch b 
+on c.batchid=b.batchid  AND  b.batchid between 2001010000 and 2206069999
+and b.reporttype='CTR'),
+cte1 as
+(select distinct b.fiureid as refiureid,b.batchid,b.reporttype,r.rptsernum
+from batch b 
+join report r on r.batchid=b.batchid 
+--and b.batchid between 2001010000 and 2206069999
+and b.fiureid in ()
+and b.reporttype='CTR'
+and b.batchid not in 
+(select batchid from batch 
+where batchtype='D' 
+union
+select originalbatchid from batch ) and 
+(b.batchid,r.rptsernum) not in (select batchid,reportserialnum from cte2))
+,cte as(select c.batchid, a.rptsernum, a.dateoftransaction as dateoftransaction,c.refiureid
+from fincorebackup1.arftrn a join cte1 c on a.batchid=c.batchid and a.rptsernum=c.rptsernum
+and c.batchid between 2001010000 and 2206069999
+union
+select c.batchid, t.rptsernum,TRANSACTIONDATE as dateoftransaction,c.refiureid from fincorebackup1.trftrn t 
+join cte1 c on t.batchid=c.batchid and t.rptsernum=c.rptsernum
+and c.batchid between 2001010000 and 2206069999),
+cte3 as(
+select * from cte
+where to_date(substr(batchid,1,6),'YY-mm-DD')  >  add_months(trunc(to_date(dateoftransaction,'yyyy-mm-dd'),'mm'),1)+15-1 )
+select refiureid,COUNT(DISTINCT batchid||rptsernum) REPORTCASECOUNT  from  cte3
+group BY refiureid
+-------------------------------
+---Amount threshold less than 100 crore
+with str_batch as(select distinct b.batchid,r.rptsernum,b.fiureid,b.entityname,b.reporttype from batch b join
+report r on b.batchid=r.batchid and b.fiureid in () --enter FIUREID here
+--where  b.batchid between 2001010000 and 2206069999)
+
+select a.batchid, a.rptsernum,c.fiureid,c.entityname, sum(a.AMOUNT) as Amount,c.reporttype from arftrn a join str_batch c on a.batchid=c.batchid and a.rptsernum=c.rptsernum
+--and c.batchid between 2001010000 and 2206069999 
+--where c.reporttype = 'CTR'
+group by a.batchid, a.rptsernum,c.fiureid,c.entityname,reporttype
+union
+select a.batchid, a.rptsernum,c.fiureid,c.entityname,sum(a.AMOUNTRUPEES) as Amount,c.reporttype from trftrn a join str_batch c on a.batchid=c.batchid and a.rptsernum=c.rptsernum
+--and c.batchid between 2001010000 and 2206069999 
+--where c.reporttype = 'CTR'
+group by a.batchid, a.rptsernum,c.fiureid,c.entityname,reporttype
+-------------------------------
+---FFMC non cash mode transactions
+with batches as (select distinct b.fiureid,b.entityname,b.batchid,r.rptsernum,b.reporttype,b.reportformattype from batch b 
+join report r on b.batchid=r.batchid
+where b.fiureid in ()
+--and b.reporttype='CTR'
+)
+
+select distinct bt.batchid,bt.rptsernum,bt.fiureid,bt.entityname,ar.transactionmode as transaction_type,bt.reporttype,bt.reportformattype from arftrn ar inner join batches bt on ar.batchid=bt.batchid
+union
+select distinct bt.batchid,bt.rptsernum,bt.fiureid,bt.entityname,tf.instrumenttype as transaction_type,bt.reporttype,bt.reportformattype from trftrn tf inner join batches bt on tf.batchid=bt.batchid
+---------------------------------
+---Present in report but absent in arftrn and trftrn
+
+select distinct r.batchid,r.rptsernum,b.fiureid,b.reporttype from batch b join report r
+on b.batchid=r.batchid 
+--where b.batchid between 2001010000 and 2206069999
+and b.fiureid in ()
+minus
+(
+select distinct a.batchid,a.rptsernum,b.fiureid,b.reporttype from arftrn a
+join batch b on b.batchid=a.batchid
+--where b.batchid between 2001010000 and 2206069999
+and b.fiureid in ()
+union
+select distinct a.batchid,a.rptsernum,b.fiureid,b.reporttype from trftrn a
+join batch b on b.batchid=a.batchid
+--where b.batchid between 2001010000 and 2206069999
+and b.fiureid in ()
+)
+
+----------------------------------
+
+-- Batch extract from Oracle
+
+with cte as( select b.batchid, b.fiureid, b.reportformattype,b.reporttype, coalesce(r.recategory,b.recategory) as recategory, coalesce(r.entityname,b.entityname) as entityname, 
+poname, b.originalbatchid, b.batchtype from batch
+b left outer join re_master r on b.fiureid = r.fiureid
+where b.batchid between 1604010000 and 2206069999 
+and coalesce(r.recategory,b.recategory)  in ('FINBN', 'FINBA'))
+select * from cte
+
+-- batch and report info
+with cte as( select b.batchid, b.fiureid, b.reportformattype,b.reporttype, coalesce(r.recategory,b.recategory) as recategory, coalesce(r.entityname,b.entityname) as entityname, 
+poname, b.originalbatchid, b.batchtype from batch
+b left outer join re_master r on b.fiureid = r.fiureid
+where b.batchid between 1604010000 and 2206069999 
+and coalesce(r.recategory,b.recategory)  in ('FINBN', 'FINBA'))
+select cte.batchid, fiureid, reportformattype, reporttype, entityname, recategory, poname, originalbatchid, batchtype, rptsernum, groundsofsusp, detailsofinvestigations, mainpersonname, sourceofalert from cte
+left join report r
+on cte.batchid = r.batchid
+
+--Adding transactions details
+
+with cte as( select b.batchid, b.fiureid, b.reportformattype,b.reporttype, coalesce(r.recategory,b.recategory) as recategory, coalesce(r.entityname,b.entityname) as entityname, 
+poname, b.originalbatchid, b.batchtype 
+from batch b left outer join re_master r on b.fiureid = r.fiureid
+where b.batchid between 1604010000 and 2206069999 
+and coalesce(r.recategory,b.recategory)  in ('FINBN', 'FINBA')),
+
+cte2 as (select cte.batchid, fiureid, reportformattype, reporttype, entityname, recategory, poname, originalbatchid, batchtype, rptsernum, groundsofsusp, detailsofinvestigations, mainpersonname, sourceofalert from cte
+left join report r
+on cte.batchid = r.batchid)
+
+select cte2.*, accountnum, transactionmode, debitcredit, currency, amount, transactiontype from cte2
+left join arftrn arf
+on cte2.batchid = arf.batchid
+and cte2.rptsernum = arf.rptsernum
+
+-------------------------------------------------------
+
+--TRFTRN
+
+with cte as( select b.batchid, b.fiureid, b.reportformattype,b.reporttype, coalesce(r.recategory,b.recategory) as recategory, coalesce(r.entityname,b.entityname) as entityname, 
+poname, b.originalbatchid, b.batchtype 
+from batch b left outer join re_master r on b.fiureid = r.fiureid
+where b.batchid between 1604010000 and 2206069999 
+and coalesce(r.recategory,b.recategory)  in ('FINBN', 'FINBA')),
+
+cte2 as (select cte.batchid, fiureid, reportformattype, reporttype, entityname, recategory, poname, originalbatchid, batchtype, rptsernum, groundsofsusp, detailsofinvestigations, mainpersonname, sourceofalert from cte
+left join report r
+on cte.batchid = r.batchid)
+
+select c.batchid, c.rptsernum, transactiondate, transactiontype, instrumenttype, amountrupees, accountnum, pan from cte2 c
+left join trftrn trf
+on c.batchid = trf.batchid
+and c.rptsernum = trf.rptsernum
+
+---------------------------------------------------------
+
+--arfinp, arflpe
+
+with cte as( select b.batchid, b.fiureid, b.reportformattype,b.reporttype, coalesce(r.recategory,b.recategory) as recategory, coalesce(r.entityname,b.entityname) as entityname, 
+poname, b.originalbatchid, b.batchtype 
+from batch b left outer join re_master r on b.fiureid = r.fiureid
+--where b.batchid between 1604010000 and 2206069999 
+and coalesce(r.recategory,b.recategory)  in ('FINBN', 'FINBA')),
+
+cte2 as (select cte.batchid, fiureid, reportformattype, reporttype, entityname, recategory, poname, originalbatchid, batchtype, rptsernum, groundsofsusp, detailsofinvestigations, mainpersonname, sourceofalert from cte
+left join report r
+on cte.batchid = r.batchid)
+
+select c.batchid, c.rptsernum, accountnum, pan from cte2 c
+left join arfinp i
+on c.batchid = i.batchid
+and c.rptsernum = i.rptsernum
+union
+(
+select c.batchid, c.rptsernum, accountnum, pan from cte2 c
+left join arflpe l
+on c.batchid = l.batchid
+and c.rptsernum = l.rptsernum
+)
+
+----------------------------------------------------------
+-- case control error
+
+with cte as( select b.batchid, b.fiureid, b.reportformattype,b.reporttype, coalesce(r.recategory,b.recategory) as recategory, coalesce(r.entityname,b.entityname) as entityname, 
+poname, b.originalbatchid, b.batchtype 
+from batch b left outer join re_master r on b.fiureid = r.fiureid
+--where b.batchid between 1604010000 and 2206069999 
+and coalesce(r.recategory,b.recategory)  in ('FINBN', 'FINBA')),
+
+cte2 as (select  cte.batchid, rptsernum from cte
+left join report r
+on cte.batchid = r.batchid)
+
+select c.batchid, c.rptsernum, casecreationpriority,status from cte2 c
+left join fincore_phase2.casecontrolerror cce
+on c.batchid = cce.batchid
+and c.rptsernum = cce.reportserialnum
+
+-- case control
+with cte as( select b.batchid, b.fiureid, b.reportformattype,b.reporttype, coalesce(r.recategory,b.recategory) as recategory, coalesce(r.entityname,b.entityname) as entityname, 
+poname, b.originalbatchid, b.batchtype 
+from batch b left outer join re_master r on b.fiureid = r.fiureid
+where b.batchid between 1604010000 and 2206069999 
+and coalesce(r.recategory,b.recategory)  in ('FINBN', 'FINBA')),
+
+cte2 as (select  cte.batchid, rptsernum from cte
+left join report r
+on cte.batchid = r.batchid)
+
+select c.batchid, c.rptsernum, casecreationpriority,status from cte2 c
+left join fincore_phase2.casecontrol cce
+on c.batchid = cce.batchid
+and c.rptsernum = cce.reportserialnum
+
+--------------------------------------------------------------------
+
+--arf branch
+
+with cte as( select b.batchid, b.fiureid, b.reportformattype,b.reporttype, coalesce(r.recategory,b.recategory) as recategory, coalesce(r.entityname,b.entityname) as entityname, 
+poname, b.originalbatchid, b.batchtype 
+from batch b left outer join re_master r on b.fiureid = r.fiureid
+where b.batchid between 1604010000 and 2206069999 
+and coalesce(r.recategory,b.recategory)  in ('FINBN', 'FINBA')),
+
+cte2 as (select  cte.batchid, rptsernum from cte
+left join report r
+on cte.batchid = r.batchid)
+
+select c.batchid, c.rptsernum, accountnum, branchname, branchrefnum, statecode, pincode, countrycode from cte2 c
+left join arfbrc a
+on c.batchid = a.batchid
+and c.rptsernum = a.rptsernum
+
+--trf branch
+
+with cte as( select b.batchid, b.fiureid, b.reportformattype,b.reporttype, coalesce(r.recategory,b.recategory) as recategory, coalesce(r.entityname,b.entityname) as entityname, 
+poname, b.originalbatchid, b.batchtype 
+from batch b left outer join re_master r on b.fiureid = r.fiureid
+where b.batchid between 1604010000 and 2206069999 
+and coalesce(r.recategory,b.recategory)  in ('FINBN', 'FINBA')),
+
+cte2 as (select  cte.batchid, rptsernum from cte
+left join report r
+on cte.batchid = r.batchid)
+
+select c.batchid, c.rptsernum, instname, instbranchname, instrefnum, statecode, pincode, countrycode  from cte2 c
+left join trfbrc a
+on c.batchid = a.batchid
+and c.rptsernum = a.rptsernum
+
+-----------------------------------------------------------
+
+## Cluster Group of PANs that occur together in multiple batchid
+
+with cte1 as
+(
+select distinct batchid,rptsernum, occupation as occupation_names, personname as person_names,pan from arfinp where (batchid,rptsernum) in ()
+union
+select distinct batchid,rptsernum, natureofbusiness as occupation_names, personname as person_names, pan from arflpe where (batchid,rptsernum) in ()
+union
+select distinct batchid,rptsernum,  occupation as occupation_names,customername as person_names, pan from trftrn where (batchid,rptsernum) in ()
+)
+,cet2 as(
+select distinct batchid,rptsernum,wm_concat(distinct pan) as pan,count(distinct pan) as pan_count,wm_concat(distinct occupation_names) as occupation_names,count(distinct occupation_names) as occupation_names_count,
+wm_concat(distinct person_names) as person_names,count(distinct person_names) as person_names_count from cte1
+--where pan is not null
+group by batchid,rptsernum),
+
+cte3 as (
+select pan from (
+select row_number() over( partition by pan order by pan_count desc) rn,c.* from cet2 c)
+where rn>1 and  pan is not null and length (pan)>11
+order by pan, rn desc
+)
+
+select * from (
+select row_number() over( partition by pan order by pan_count desc) rn,c.* from cet2 c)
+where pan in (select pan from cte3) 
+order by pan, rn
+-----------------------------------------------------------
+
+pip install numpy -i http://pypi.douban.com/simple --trusted-host pypi.douban.com
+
+------------------------------------------
+-------------Pincode Count----------------------
+with cte1 as
+(
+SELECT distinct batchid::text||'||'||rptsernum::text as brn, upper(trim(commpincode)) as pincodes 
+    FROM risk_priority.arfinp2004_2212 where (batchid,rptsernum) in ()
+union
+SELECT distinct batchid::text||'||'||rptsernum::text	as brn, upper(trim(commpincode)) as pincodes 
+    FROM risk_priority.arflpe2004_2212 where (batchid,rptsernum) in ()
+union
+SELECT distinct batchid::text||'||'||rptsernum::text as brn, upper(trim(pincode)) as pincodes	
+    FROM risk_priority.trftrn_final_str where (batchid,rptsernum) in ()
+)
+
+select distinct trim(brn), count(distinct upper(trim(pincodes))) cnt, string_agg(upper(trim(pincodes)), '||')
+from cte1
+group by brn
+order by cnt desc
+---------------------------------------------
+
+
+-- batches without report details:
+
+SELECT batchid, fiureid, entityname, reporttype, recategory
+	FROM nbfc_data.report
+    WHERE rptsernum is null
+    AND reporttype != 'CCR'
+    AND batchid in (select distinct (batchid) from nbfc_data.isolatedexcluded )
+
+---------------------------------------
+
+-- Invalid or dummy PAN
+
+with cte as 
+(select *  from 
+
+(select batchid, rptsernum, pan from nbfc_data.arfinplpe
+WHERE accountnum is not null
+UNION
+
+select batchid, rptsernum, pan from nbfc_data.trftrn
+ WHERE transactiondate is not null
+) a
+
+where (pan in('AAAAA0000A','AAAAA1111A','AAAAA1234A','XXXXX0000X','XXXXX1111X','XXXXX1234X','ABCDE1234F','XXXXX9999X','AAAAA9999A') or pan is null) or
+pan !~ '^[A-Z]{5}[0-9]{4}[A-Z]$' 
+AND batchid in (select distinct (batchid) from nbfc_data.isolatedexcluded )
+ )
+
+select fiureid, recategory,entityname, count(distinct a.batchid|| rptsernum::varchar) from nbfc_data.isolatedexcluded a
+where (a.batchid,a.rptsernum) in (select cte.batchid, cte.rptsernum from cte) 
+group by fiureid, recategory,entityname
+
+
+---------------------------------------
+
+-- transaction details missing
+
+with cte as 
+((select b.batchid, arf.rptsernum, b.fiureid, b.entityname, b.reporttype, b.recategory from nbfc_data.arftrn_new arf
+inner join nbfc_data.isolatedexcluded b
+on arf.batchid = b.batchid
+and arf.rptsernum is not null
+and arf.accountnum is not null
+)
+UNION
+(select b.batchid, trf.rptsernum, b.fiureid, b.entityname, b.reporttype, b.recategory from nbfc_data.trftrn trf
+inner join nbfc_data.isolatedexcluded b
+on trf.batchid = b.batchid
+and trf.rptsernum is not null
+and trf.transactiondate is not null
+))
+
+select fiureid, recategory,entityname, count(distinct a.batchid|| rptsernum::varchar) from nbfc_data.isolatedexcluded a
+where (a.batchid,a.rptsernum) not in (select cte.batchid, cte.rptsernum from cte) 
+group by fiureid, recategory,entityname
+
+-----------------------------------------
+
+-- timeliness of CTR, NTR, EFT
+
+with cte as 
+((select b.batchid, arf.rptsernum, b.fiureid, b.entityname, b.reporttype, b.recategory, dateoftransaction as transactiondate from nbfc_data.arftrn_new arf
+inner join nbfc_data.isolatedexcluded b
+on arf.batchid = b.batchid
+and arf.rptsernum is not null
+and arf.accountnum is not null
+and reporttype IN ('CTR', 'NTR', 'EFT')
+and to_date(substr(arf.batchid::text,1,6),'yymmdd')  >  date_trunc('month', (to_date(dateoftransaction,'yyyy-mm-dd') + INTERVAL '1 month')) + INTERVAL '14 days' 
+)
+UNION
+(select b.batchid, trf.rptsernum, b.fiureid, b.entityname, b.reporttype, b.recategory, transactiondate from nbfc_data.trftrn trf
+inner join nbfc_data.isolatedexcluded b
+on trf.batchid = b.batchid
+and trf.rptsernum is not null
+and trf.transactiondate is not null
+and reporttype IN ('CTR', 'NTR', 'EFT')
+and to_date(substr(trf.batchid::text,1,6),'yymmdd')  >  date_trunc('month', (to_date(transactiondate,'yyyy-mm-dd') + INTERVAL '1 month')) + INTERVAL '14 days' 
+))
+
+select fiureid, recategory,entityname, count(distinct batchid::varchar|| rptsernum::varchar) as reportcount
+from cte
+group by fiureid, recategory,entityname
+
+------------------------------------------
+
+-- multiple branches
+
+select b.fiureid, b.entityname, count(z.dupbranchcount) 
+from nbfc_data.isolatedexcluded b 
+join (
+select batchid,rptsernum,accountnum,count(distinct branchrefnum) as dupbranchcount
+from nbfc_data.arfbrc 
+where rptsernum is not null
+AND branchrefnum is not null
+group by batchid,rptsernum,accountnum
+having count(distinct branchrefnum) > 1) z 
+on z.batchid = b.batchid
+where reporttype != 'CCR'
+group by b.fiureid, b.entityname
+order by count(z.dupbranchcount) desc
+
+---------------------------------------------
+
+
+
+----------------RE WISE---------------
+with cte1 as
+(
+      (SELECT batchid, b.fiureid, coalesce(r.entityname,b.entityname) as entityname, coalesce(r.recategory, b.recategory) as recategory
+           FROM risk_priority.batch_res_final b
+	left join public.re_master r on r.fiureid = b.fiureid
+          WHERE b.reporttype = 'STR'::text AND b.reportformattype = 'ARF'::text
+	and b.batchtype<>'D')
+        UNION
+          (SELECT batchid, b.fiureid, coalesce(r.entityname,b.entityname) as entityname, coalesce(r.recategory, b.recategory) as recategory
+           FROM risk_priority.batch_res_1804_2003 b
+	left join public.re_master r on r.fiureid = b.fiureid
+          WHERE b.reporttype = 'STR'::text AND b.reportformattype = 'ARF'::text
+	and b.batchtype<>'D')
+)
+, cte2 as (
+select distinct cte1.batchid, rptsernum, fiureid, entityname, recategory from  risk_priority.report_5_years r inner join cte1 on r.batchid=cte1.batchid
+)
+
+select fiureid,recategory, entityname,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 1804010000 and 1903319999) FY_1819,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 1904010000 and 2003319999) FY_1920,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2004010000 and 2103319999) FY_2021,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2104010000 and 2203319999) FY_2122,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2204010000 and 2212319999) FY_2223,
+	count(distinct batchid::text||rptsernum::text) as countt
+	from  cte2
+where batchid not in
+(
+select originalbatchid from risk_priority.batch_res_1804_2003 
+union
+select originalbatchid from risk_priority.batch_res_final
+)
+and (batchid,rptsernum) not in ( SELECT DISTINCT isolated_str_1804_2212.batchid,
+isolated_str_1804_2212.reportserialnum AS rptsernum
+FROM risk_priority.isolated_str_1804_2212)
+group by fiureid,recategory, entityname
+order by countt desc
+
+
+----------RE CATEGORY WISE---------------------------------------------
+
+with cte1 as
+(
+      (SELECT batchid, b.fiureid, coalesce(r.entityname,b.entityname) as entityname, coalesce(r.recategory, b.recategory) as recategory
+           FROM risk_priority.batch_res_final b
+	left join public.re_master r on r.fiureid = b.fiureid
+          WHERE b.reporttype = 'STR'::text AND b.reportformattype = 'ARF'::text
+	and b.batchtype<>'D')
+        UNION
+          (SELECT batchid, b.fiureid, coalesce(r.entityname,b.entityname) as entityname, coalesce(r.recategory, b.recategory) as recategory
+           FROM risk_priority.batch_res_1804_2003 b
+	left join public.re_master r on r.fiureid = b.fiureid
+          WHERE b.reporttype = 'STR'::text AND b.reportformattype = 'ARF'::text
+	and b.batchtype<>'D')
+)
+, cte2 as (
+select distinct cte1.batchid, rptsernum, fiureid, entityname, recategory from  risk_priority.report_5_years r inner join cte1 on r.batchid=cte1.batchid
+)
+
+select recategory,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 1804010000 and 1903319999) FY_1819,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 1904010000 and 2003319999) FY_1920,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2004010000 and 2103319999) FY_2021,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2104010000 and 2203319999) FY_2122,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2204010000 and 2212319999) FY_2223,
+	count(distinct batchid::text||rptsernum::text) as countt
+	from  cte2
+where batchid not in
+(
+select originalbatchid from risk_priority.batch_res_1804_2003 
+union
+select originalbatchid from risk_priority.batch_res_final
+)
+and (batchid,rptsernum) not in ( SELECT DISTINCT isolated_str_1804_2212.batchid,
+isolated_str_1804_2212.reportserialnum AS rptsernum
+FROM risk_priority.isolated_str_1804_2212)
+group by recategory
+order by countt desc
+
+
+
+
+--------- Account type wise-------------------------------------
+with cte1 as (select fy, batchid, rptsernum, accountnum, accounttype, accountholdertype, batchid::text||rptsernum::text  as brpt from  risk_priority.fatf_str_1804_2003
+  union select fy, batchid, rptsernum,accountnum, accounttype, accountholdertype,batchid::text||rptsernum::text  as brpt from  risk_priority.fatf_str_2004_2212_ason_apr6),
+cte as (select * from cte1 where (batchid, rptsernum) not in (select distinct batchid,reportserialnum as rptsernum from risk_priority.isolated_str_1804_2212) )  
+
+select cte.accounttype, accounttypedesc,fy, count(distinct brpt)countt from cte
+left join public.acc_type_master_name  r on cte.accounttype=r.accounttype
+group by cte.accounttype, accounttypedesc,fy
+order by fy,countt desc 
+
+
+--------- Account holder type wise-------------------------------------
+
+with cte1 as (select fy, batchid, rptsernum, accountnum, accounttype, accountholdertype, batchid::text||rptsernum::text  as brpt from  risk_priority.fatf_str_1804_2003
+  union select fy, batchid, rptsernum,accountnum, accounttype, accountholdertype,batchid::text||rptsernum::text  as brpt from  risk_priority.fatf_str_2004_2212_ason_apr6),
+cte as (select * from cte1 where (batchid, rptsernum) not in (select distinct batchid,reportserialnum as rptsernum from risk_priority.isolated_str_1804_2212) )  
+
+select cte.accountholdertype, accountholdertypedesc,fy, count(distinct brpt)countt from cte
+left join public.acc_holdertype_master_name r on cte.accountholdertype=r.accountholdertype
+group by cte.accountholdertype, accountholdertypedesc,fy
+order by fy,countt desc 
+
+
+------------------------Occupation------------------------------------------------
+
+with cte as (
+select distinct batchid, rptsernum,accountnum, occupation from  risk_priority.arfinp_1804_2003
+union
+select distinct batchid, rptsernum,accountnum, occupation from  risk_priority.arfinp2004_2212
+union
+select distinct batchid, rptsernum,accountnum, natureofbusiness from risk_priority.arflpe_1804_2003
+union
+select distinct batchid, rptsernum,accountnum, natureofbusiness from risk_priority.arflpe2004_2212)
+
+select occupation, fy, count(distinct cte.batchid::text||cte.rptsernum::text) countt from  cte
+inner join risk_priority.fatf_relevant_batchid_rptsernum a on a.batchid=cte.batchid and a.rptsernum=cte.rptsernum
+group by occupation,fy
+
+
+--------- Occupation-------------------------------------
+
+with cte as (
+select distinct batchid, rptsernum,accountnum, occupation from  risk_priority.arfinp_1804_2003
+union
+select distinct batchid, rptsernum,accountnum, occupation from  risk_priority.arfinp2004_2212
+union
+select distinct batchid, rptsernum,accountnum, natureofbusiness from risk_priority.arflpe_1804_2003
+union
+select distinct batchid, rptsernum,accountnum, natureofbusiness from risk_priority.arflpe2004_2212)
+
+select trim(upper(occupation))as occupation, fy, count(distinct cte.batchid::text||cte.rptsernum::text) countt from  cte
+inner join risk_priority.fatf_relevant_batchid_rptsernum a on a.batchid=cte.batchid and a.rptsernum=cte.rptsernum
+group by trim(upper(occupation)),fy
+
+
+--------- Gender-------------------------------------
+
+with cte as (
+select distinct batchid, rptsernum,accountnum, gender from  risk_priority.arfinp_1804_2003
+union
+select distinct batchid, rptsernum,accountnum, gender from  risk_priority.arfinp2004_2212
+)
+select gender, fy, count(distinct cte.batchid::text||cte.rptsernum::text) countt from  cte
+inner join risk_priority.fatf_relevant_batchid_rptsernum a on a.batchid=cte.batchid and a.rptsernum=cte.rptsernum
+group by gender,fy
+
+-----------------------constitutiotype--------------------------------
+with cte1 as
+(
+      SELECT *
+           FROM risk_priority.batch_res_final
+          WHERE batch_res_final.reporttype = 'STR'::text AND batch_res_final.reportformattype = 'ARF'::text
+        UNION
+         SELECT *
+           FROM risk_priority.batch_res_1804_2003
+          WHERE batch_res_1804_2003.reporttype = 'STR'::text AND batch_res_1804_2003.reportformattype = 'ARF'::text
+)
+, cte2 as (
+--select distinct batchid, rptsernum,accountnum,gender from  risk_priority.arfinp_1804_2003
+--union
+--select distinct batchid, rptsernum,accountnum, gender from  risk_priority.arfinp2004_2212
+--union
+select distinct batchid, rptsernum,accountnum, constitutiontype from risk_priority.arflpe_1804_2003
+union
+select distinct batchid, rptsernum,accountnum, constitutiontype from risk_priority.arflpe2004_2212)
+
+select constitutiontype, count(distinct batchid::text||rptsernum::text) filter (where batchid between 1804010000 and 1903319999) FY_1819,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 1904010000 and 2003319999) FY_1920,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2004010000 and 2103319999) FY_2021,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2104010000 and 2203319999) FY_2122,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2204010000 and 2303319999) FY_2223,
+	count(distinct batchid::text||rptsernum::text) as countt
+	from  cte2
+where batchid in
+(
+	select distinct batchid from cte1 where batchid not in
+	(select originalbatchid from cte1 union select batchid from cte1 where batchtype='D' )
+         )
+		  and (batchid,rptsernum) not in ( SELECT DISTINCT isolated_str_1804_2212.batchid,
+            isolated_str_1804_2212.reportserialnum AS rptsernum
+           FROM risk_priority.isolated_str_1804_2212)
+group by constitutiontype
+order by countt desc
+------------------------nationality--------------------------------
+
+with cte1 as
+(
+      SELECT *
+           FROM risk_priority.batch_res_final
+          WHERE batch_res_final.reporttype = 'STR'::text AND batch_res_final.reportformattype = 'ARF'::text
+        UNION
+         SELECT *
+           FROM risk_priority.batch_res_1804_2003
+          WHERE batch_res_1804_2003.reporttype = 'STR'::text AND batch_res_1804_2003.reportformattype = 'ARF'::text
+)
+, cte2 as (
+select distinct batchid, rptsernum,accountnum,nationality from  risk_priority.arfinp_1804_2003
+union
+select distinct batchid, rptsernum,accountnum, nationality from  risk_priority.arfinp2004_2212
+--union
+--select distinct batchid, rptsernum,accountnum, constitutiontype from risk_priority.arflpe_1804_2003
+--union
+--select distinct batchid, rptsernum,accountnum, constitutiontype from risk_priority.arflpe2004_2212
+)
+
+select nationality, count(distinct batchid::text||rptsernum::text) filter (where batchid between 1804010000 and 1903319999) FY_1819,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 1904010000 and 2003319999) FY_1920,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2004010000 and 2103319999) FY_2021,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2104010000 and 2203319999) FY_2122,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2204010000 and 2303319999) FY_2223,
+	count(distinct batchid::text||rptsernum::text) as countt
+	from  cte2
+where batchid in
+(
+	select distinct batchid from cte1 where batchid not in
+	(select originalbatchid from cte1 union select batchid from cte1 where batchtype='D' )
+         )
+		  and (batchid,rptsernum) not in ( SELECT DISTINCT isolated_str_1804_2212.batchid,
+            isolated_str_1804_2212.reportserialnum AS rptsernum
+           FROM risk_priority.isolated_str_1804_2212)
+group by nationality
+order by countt desc
+
+------------------------commcountrycode---------------------------
+
+with cte1 as
+(
+      SELECT *
+           FROM risk_priority.batch_res_final
+          WHERE batch_res_final.reporttype = 'STR'::text AND batch_res_final.reportformattype = 'ARF'::text
+        UNION
+         SELECT *
+           FROM risk_priority.batch_res_1804_2003
+          WHERE batch_res_1804_2003.reporttype = 'STR'::text AND batch_res_1804_2003.reportformattype = 'ARF'::text
+)
+, cte2 as (
+select distinct batchid, rptsernum,accountnum,commcountrycode from  risk_priority.arfinp_1804_2003
+union
+select distinct batchid, rptsernum,accountnum, commcountrycode from  risk_priority.arfinp2004_2212
+union
+select distinct batchid, rptsernum,accountnum, commcountrycode from risk_priority.arflpe_1804_2003
+union
+select distinct batchid, rptsernum,accountnum, commcountrycode from risk_priority.arflpe2004_2212
+)
+
+select commcountrycode, count(distinct batchid::text||rptsernum::text) filter (where batchid between 1804010000 and 1903319999) FY_1819,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 1904010000 and 2003319999) FY_1920,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2004010000 and 2103319999) FY_2021,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2104010000 and 2203319999) FY_2122,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2204010000 and 2303319999) FY_2223,
+	count(distinct batchid::text||rptsernum::text) as countt
+	from  cte2
+where batchid in
+(
+	select distinct batchid from cte1 where batchid not in
+	(select originalbatchid from cte1 union select batchid from cte1 where batchtype='D' )
+         )
+		  and (batchid,rptsernum) not in ( SELECT DISTINCT isolated_str_1804_2212.batchid,
+            isolated_str_1804_2212.reportserialnum AS rptsernum
+           FROM risk_priority.isolated_str_1804_2212)
+group by commcountrycode
+order by countt desc
+-------------------------seccountrycode---------------------------
+
+with cte1 as
+(
+      SELECT *
+           FROM risk_priority.batch_res_final
+          WHERE batch_res_final.reporttype = 'STR'::text AND batch_res_final.reportformattype = 'ARF'::text
+        UNION
+         SELECT *
+           FROM risk_priority.batch_res_1804_2003
+          WHERE batch_res_1804_2003.reporttype = 'STR'::text AND batch_res_1804_2003.reportformattype = 'ARF'::text
+)
+, cte2 as (
+select distinct batchid, rptsernum,accountnum,seccountrycode from  risk_priority.arfinp_1804_2003
+union
+select distinct batchid, rptsernum,accountnum, seccountrycode from  risk_priority.arfinp2004_2212
+union
+select distinct batchid, rptsernum,accountnum, seccountrycode from risk_priority.arflpe_1804_2003
+union
+select distinct batchid, rptsernum,accountnum, seccountrycode from risk_priority.arflpe2004_2212
+)
+
+select seccountrycode, count(distinct batchid::text||rptsernum::text) filter (where batchid between 1804010000 and 1903319999) FY_1819,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 1904010000 and 2003319999) FY_1920,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2004010000 and 2103319999) FY_2021,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2104010000 and 2203319999) FY_2122,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2204010000 and 2303319999) FY_2223,
+	count(distinct batchid::text||rptsernum::text) as countt
+	from  cte2
+where batchid in
+(
+	select distinct batchid from cte1 where batchid not in
+	(select originalbatchid from cte1 union select batchid from cte1 where batchtype='D' )
+         )
+		  and (batchid,rptsernum) not in ( SELECT DISTINCT isolated_str_1804_2212.batchid,
+            isolated_str_1804_2212.reportserialnum AS rptsernum
+           FROM risk_priority.isolated_str_1804_2212)
+group by seccountrycode
+order by countt desc
+
+
+------------------------------------------Occupation-----------------------------------------------
+
+with cte1 as
+(
+      SELECT *
+           FROM risk_priority.batch_res_final
+          WHERE batch_res_final.reporttype = 'STR'::text AND batch_res_final.reportformattype = 'ARF'::text
+        UNION
+         SELECT *
+           FROM risk_priority.batch_res_1804_2003
+          WHERE batch_res_1804_2003.reporttype = 'STR'::text AND batch_res_1804_2003.reportformattype = 'ARF'::text
+)
+, cte2 as (
+select distinct batchid, rptsernum,accountnum,occupation from  risk_priority.arfinp_1804_2003
+union
+select distinct batchid, rptsernum,accountnum, occupation from  risk_priority.arfinp2004_2212
+union
+select distinct batchid, rptsernum,accountnum, natureofbusiness as occupation from risk_priority.arflpe_1804_2003
+union
+select distinct batchid, rptsernum,accountnum, natureofbusiness as occupation  from risk_priority.arflpe2004_2212
+)
+
+select trim(upper(occupation)) as occupation, count(distinct batchid::text||rptsernum::text) filter (where batchid between 1804010000 and 1903319999) FY_1819,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 1904010000 and 2003319999) FY_1920,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2004010000 and 2103319999) FY_2021,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2104010000 and 2203319999) FY_2122,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2204010000 and 2303319999) FY_2223,
+	count(distinct batchid::text||rptsernum::text) as countt
+	from  cte2
+where batchid in
+(
+	select distinct batchid from cte1 where batchid not in
+	(select originalbatchid from cte1 union select batchid from cte1 where batchtype='D' )
+         )
+		  and (batchid,rptsernum) not in ( SELECT DISTINCT isolated_str_1804_2212.batchid,
+            isolated_str_1804_2212.reportserialnum AS rptsernum
+           FROM risk_priority.isolated_str_1804_2212)
+group by trim(upper(occupation))
+order by countt desc
+
+-----------------------------------------------test queries--------------------------------------------------
+
+
+with cte as (
+select b.batchid, rptsernum
+from  risk_priority.arfinp_1804_2003 i
+join risk_priority.batch_res_1804_2003 b
+on i.batchid = b.batchid
+and b.batchid between 1804010000 and 1903319999
+AND b.reportformattype = 'ARF'::text
+and b.reporttype = 'STR'
+and i.commcountrycode = 'XX'
+    and b.batchtype<>'D'
+           
+UNION
+
+select b.batchid, rptsernum 
+from  risk_priority.arflpe_1804_2003 i
+join risk_priority.batch_res_1804_2003 b
+on i.batchid = b.batchid
+and b.batchid between 1804010000 and 1903319999
+AND b.reportformattype = 'ARF'::text
+    and b.reporttype = 'STR'
+and i.commcountrycode = 'XX'
+and b.batchtype<>'D'
+)
+
+select count(distinct batchid::text||rptsernum::text)
+from cte
+where batchid not in
+	(select originalbatchid from risk_priority.batch_res_1804_2003 
+     union
+    select originalbatchid from risk_priority.batch_res_final
+    )
+and (batchid,rptsernum) not in ( SELECT DISTINCT isolated_str_1804_2212.batchid,
+        isolated_str_1804_2212.reportserialnum AS rptsernum
+           FROM risk_priority.isolated_str_1804_2212)
+
+---------------------------------------------------------------------------------------------------------
+
+with cte as (                
+select r.batchid,rptsernum,fiureid,recategory,mainpersonname, sourceofalert, r.groundsofsusp,r.detailsofinvestigations,
+array_to_string(regexp_matches
+				(regexp_replace(concat(' ',upper(trim(groundsofsusp)),' ',upper(trim(detailsofinvestigations)),' '),'[^\w]+',' ','g'),' CYBER CRIME | CYBER FRAUD | CYBERFRAUD | ONLINE FRAUD | ONLINE SCAM ','ig'),'') keyword
+from risk_priority.report_1804_2003 r
+inner join risk_priority.batch_1804_2003 b
+on r.batchid=b.batchid
+where  batchtype<>'D'
+    AND b.reportformattype = 'ARF'::text
+    and b.reporttype = 'STR'
+                UNION
+select r.batchid,rptsernum,fiureid,recategory,mainpersonname, sourceofalert,r.groundsofsusp,r.detailsofinvestigations,
+array_to_string(regexp_matches
+				(regexp_replace(concat(' ',upper(trim(groundsofsusp)),' ',upper(trim(detailsofinvestigations)),' '),'[^\w]+',' ','g'),' CYBER CRIME | CYBER FRAUD | CYBERFRAUD | ONLINE FRAUD | ONLINE SCAM ','ig'),'') keyword
+from risk_priority.report_res_final r
+inner join risk_priority.batch_res_final b
+on r.batchid=b.batchid
+where  batchtype<>'D'  
+    AND b.reportformattype = 'ARF'::text
+    and b.reporttype = 'STR')
+
+select count(distinct batchid::text||rptsernum::text) filter (where batchid between 1804010000 and 1903319999) FY_1819,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 1904010000 and 2003319999) FY_1920,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2004010000 and 2103319999) FY_2021,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2104010000 and 2203319999) FY_2122,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2204010000 and 2212319999) FY_2223,
+	count(distinct batchid::text||rptsernum::text) as countt 
+from cte
+where batchid not in (select originalbatchid from risk_priority.batch_1804_2003 
+						union
+						select originalbatchid from risk_priority.batch_res_final   ) 
+and (batchid,rptsernum) not in ( SELECT DISTINCT isolated_str_1804_2212.batchid,
+        isolated_str_1804_2212.reportserialnum AS rptsernum
+           FROM risk_priority.isolated_str_1804_2212)
+
+--------------------------------------------------------------------------------------------------------
+
+--------------------------Accounthodertype-F count-----------------------------
+
+with cte1 as
+(
+      (SELECT b.batchid, b.entityname, b.fiureid
+           FROM risk_priority.batch_res_final b
+          WHERE b.reporttype = 'STR'::text AND b.reportformattype = 'ARF'::text
+	and b.batchtype<>'D')
+        UNION
+          (SELECT batchid, b.entityname, b.fiureid
+           FROM risk_priority.batch_res_1804_2003 b
+          WHERE b.reporttype = 'STR'::text AND b.reportformattype = 'ARF'::text
+	and b.batchtype<>'D') 
+    
+)
+, cte2 as (
+select distinct cte1.batchid, r.rptsernum, entityname, fiureid, r.groundsofsusp, r.detailsofinvestigations, r.mainpersonname, a.accountnum::text, a.accountholdertype from cte1
+    inner join risk_priority.report_5_years r 
+on r.batchid = cte1.batchid
+inner join (select batchid, rptsernum, accountnum::text, accountholdertype from risk_priority.arfacc_str 
+           union 
+           select batchid, rptsernum, accountnum::text, accountholdertype from risk_priority.arfacc_1804_2003) a
+on r.batchid = a.batchid and r.rptsernum = a.rptsernum
+where a.accountholdertype = 'F')
+
+select count(distinct batchid::text||rptsernum::text) filter (where batchid between 1804010000 and 1903319999) FY_1819,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 1904010000 and 2003319999) FY_1920,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2004010000 and 2103319999) FY_2021,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2104010000 and 2203319999) FY_2122,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2204010000 and 2212319999) FY_2223,
+	count(distinct batchid::text||rptsernum::text) as countt 
+    from cte2
+where batchid not in
+(
+select originalbatchid from risk_priority.batch_res_1804_2003 
+union
+select originalbatchid from risk_priority.batch_res_final
+)
+and (batchid,rptsernum) not in ( SELECT DISTINCT isolated_str_1804_2212.batchid,
+isolated_str_1804_2212.reportserialnum AS rptsernum
+FROM risk_priority.isolated_str_1804_2212)
+    
+---------------------------------------Accounthodertype-F-----------------------------------------------
+
+with cte1 as
+(
+      (SELECT b.batchid, b.entityname, b.fiureid
+           FROM risk_priority.batch_res_final b
+          WHERE b.reporttype = 'STR'::text AND b.reportformattype = 'ARF'::text
+	and b.batchtype<>'D')
+        UNION
+          (SELECT batchid, b.entityname, b.fiureid
+           FROM risk_priority.batch_res_1804_2003 b
+          WHERE b.reporttype = 'STR'::text AND b.reportformattype = 'ARF'::text
+	and b.batchtype<>'D') 
+    
+)
+, cte2 as (
+select distinct cte1.batchid, r.rptsernum, entityname, fiureid, r.groundsofsusp, r.detailsofinvestigations, r.mainpersonname, a.accountnum::text, a.accountholdertype from cte1
+    inner join risk_priority.report_5_years r 
+on r.batchid = cte1.batchid
+inner join (select batchid, rptsernum, accountnum::text, accountholdertype from risk_priority.arfacc_str 
+           union 
+           select batchid, rptsernum, accountnum::text, accountholdertype from risk_priority.arfacc_1804_2003) a
+on r.batchid = a.batchid and r.rptsernum = a.rptsernum
+where a.accountholdertype = 'F')
+
+select  distinct batchid, rptsernum, entityname as re_name, fiureid, groundsofsusp, detailsofinvestigations, mainpersonname
+    from cte2
+where batchid not in
+(
+select originalbatchid from risk_priority.batch_res_1804_2003 
+union
+select originalbatchid from risk_priority.batch_res_final
+)
+and (batchid,rptsernum) not in ( SELECT DISTINCT isolated_str_1804_2212.batchid,
+isolated_str_1804_2212.reportserialnum AS rptsernum
+FROM risk_priority.isolated_str_1804_2212)
+
+
+
+------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------With TRF-------------------------------------------------------
+
+
+--------------------------RE Wise---------------------
+with cte1 as
+(
+      (SELECT batchid, b.fiureid, coalesce(r.entityname,b.entityname) as entityname, coalesce(r.recategory, b.recategory) as recategory
+           FROM risk_priority.batch_res_final b
+	left join public.re_master r on r.fiureid = b.fiureid
+          WHERE b.reporttype = 'STR'::text --AND b.reportformattype = 'ARF'::text
+	and b.batchtype<>'D')
+        UNION
+          (SELECT batchid, b.fiureid, coalesce(r.entityname,b.entityname) as entityname, coalesce(r.recategory, b.recategory) as recategory
+           FROM risk_priority.batch_res_1804_2003 b
+	left join public.re_master r on r.fiureid = b.fiureid
+          WHERE b.reporttype = 'STR'::text --AND b.reportformattype = 'ARF'::text
+	and b.batchtype<>'D')
+)
+, cte2 as (
+select distinct cte1.batchid, rptsernum, fiureid, entityname, recategory from  risk_priority.report_5_years r inner join cte1 on r.batchid=cte1.batchid
+)
+
+select fiureid,recategory, entityname,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 1804010000 and 1903319999) FY_1819,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 1904010000 and 2003319999) FY_1920,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2004010000 and 2103319999) FY_2021,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2104010000 and 2203319999) FY_2122,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2204010000 and 2212319999) FY_2223,
+	count(distinct batchid::text||rptsernum::text) as countt
+	from  cte2
+where batchid not in
+(
+select originalbatchid from risk_priority.batch_res_1804_2003 
+union
+select originalbatchid from risk_priority.batch_res_final
+)
+and (batchid,rptsernum) not in ( SELECT DISTINCT isolated_str_1804_2212.batchid,
+isolated_str_1804_2212.reportserialnum AS rptsernum
+FROM risk_priority.isolated_str_1804_2212)
+group by fiureid,recategory, entityname
+order by countt desc
+
+
+
+---------------------------RE Category Wise---------------------
+
+with cte1 as
+(
+      (SELECT batchid, b.fiureid, coalesce(r.entityname,b.entityname) as entityname, coalesce(r.recategory, b.recategory) as recategory
+           FROM risk_priority.batch_res_final b
+	left join public.re_master r on r.fiureid = b.fiureid
+          WHERE b.reporttype = 'STR'::text --AND b.reportformattype = 'ARF'::text
+	and b.batchtype<>'D')
+        UNION
+          (SELECT batchid, b.fiureid, coalesce(r.entityname,b.entityname) as entityname, coalesce(r.recategory, b.recategory) as recategory
+           FROM risk_priority.batch_res_1804_2003 b
+	left join public.re_master r on r.fiureid = b.fiureid
+          WHERE b.reporttype = 'STR'::text --AND b.reportformattype = 'ARF'::text
+	and b.batchtype<>'D')
+)
+, cte2 as (
+select distinct cte1.batchid, rptsernum, fiureid, entityname, recategory from  risk_priority.report_5_years r inner join cte1 on r.batchid=cte1.batchid
+)
+
+select recategory,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 1804010000 and 1903319999) FY_1819,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 1904010000 and 2003319999) FY_1920,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2004010000 and 2103319999) FY_2021,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2104010000 and 2203319999) FY_2122,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2204010000 and 2212319999) FY_2223,
+	count(distinct batchid::text||rptsernum::text) as countt
+	from  cte2
+where batchid not in
+(
+select originalbatchid from risk_priority.batch_res_1804_2003 
+union
+select originalbatchid from risk_priority.batch_res_final
+)
+and (batchid,rptsernum) not in ( SELECT DISTINCT isolated_str_1804_2212.batchid,
+isolated_str_1804_2212.reportserialnum AS rptsernum
+FROM risk_priority.isolated_str_1804_2212)
+group by recategory
+order by countt desc
+
+
+---------------------------------------Occupation-----------------------------------
+
+with cte1 as
+(
+      SELECT *
+           FROM risk_priority.batch_res_final
+          WHERE batch_res_final.reporttype = 'STR'::text --AND batch_res_final.reportformattype = 'ARF'::text
+        UNION
+         SELECT *
+           FROM risk_priority.batch_res_1804_2003
+          WHERE batch_res_1804_2003.reporttype = 'STR'::text --AND batch_res_1804_2003.reportformattype = 'ARF'::text
+)
+, cte2 as (
+select distinct batchid, rptsernum,occupation from  risk_priority.arfinp_1804_2003
+union
+select distinct batchid, rptsernum, occupation from  risk_priority.arfinp2004_2212
+union
+select distinct batchid, rptsernum, natureofbusiness as occupation from risk_priority.arflpe_1804_2003
+union
+select distinct batchid, rptsernum, natureofbusiness as occupation  from risk_priority.arflpe2004_2212
+union
+select distinct batchid, rptsernum, occupation from risk_priority.trftrn_final_str
+union 
+select distinct batchid, rptsernum, occupation from risk_priority.trftrn_1804_2003
+)
+
+select trim(upper(occupation)) as occupation, count(distinct batchid::text||rptsernum::text) filter (where batchid between 1804010000 and 1903319999) FY_1819,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 1904010000 and 2003319999) FY_1920,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2004010000 and 2103319999) FY_2021,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2104010000 and 2203319999) FY_2122,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2204010000 and 2303319999) FY_2223,
+	count(distinct batchid::text||rptsernum::text) as countt
+	from  cte2
+where batchid in
+(
+	select distinct batchid from cte1 where batchid not in
+	(select originalbatchid from cte1 union select batchid from cte1 where batchtype='D' )
+         )
+		  and (batchid,rptsernum) not in ( SELECT DISTINCT isolated_str_1804_2212.batchid,
+            isolated_str_1804_2212.reportserialnum AS rptsernum
+           FROM risk_priority.isolated_str_1804_2212)
+group by trim(upper(occupation))
+order by countt desc
+
+--------------------------------------------Gender-----------------------------------------
+
+with cte1 as
+(
+      SELECT *
+           FROM risk_priority.batch_res_final
+          WHERE batch_res_final.reporttype = 'STR'::text --AND batch_res_final.reportformattype = 'ARF'::text
+        UNION
+         SELECT *
+           FROM risk_priority.batch_res_1804_2003
+          WHERE batch_res_1804_2003.reporttype = 'STR'::text --AND batch_res_1804_2003.reportformattype = 'ARF'::text
+)
+, cte2 as (
+select distinct batchid, rptsernum,gender from  risk_priority.arfinp_1804_2003
+union
+select distinct batchid, rptsernum, gender from  risk_priority.arfinp2004_2212
+union
+select distinct batchid, rptsernum, gender from risk_priority.trftrn_final_str
+union 
+select distinct batchid, rptsernum, gender from risk_priority.trftrn_1804_2003
+)
+
+select trim(upper(gender)) as gender, count(distinct batchid::text||rptsernum::text) filter (where batchid between 1804010000 and 1903319999) FY_1819,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 1904010000 and 2003319999) FY_1920,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2004010000 and 2103319999) FY_2021,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2104010000 and 2203319999) FY_2122,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2204010000 and 2303319999) FY_2223,
+	count(distinct batchid::text||rptsernum::text) as countt
+	from  cte2
+where batchid in
+(
+	select distinct batchid from cte1 where batchid not in
+	(select originalbatchid from cte1 union select batchid from cte1 where batchtype='D' )
+         )
+		  and (batchid,rptsernum) not in ( SELECT DISTINCT isolated_str_1804_2212.batchid,
+            isolated_str_1804_2212.reportserialnum AS rptsernum
+           FROM risk_priority.isolated_str_1804_2212)
+group by trim(upper(gender))
+order by countt desc
+
+-----------------------------------------------Nationality--------------------------------
+
+with cte1 as
+(
+      SELECT *
+           FROM risk_priority.batch_res_final
+          WHERE batch_res_final.reporttype = 'STR'::text --AND batch_res_final.reportformattype = 'ARF'::text
+        UNION
+         SELECT *
+           FROM risk_priority.batch_res_1804_2003
+          WHERE batch_res_1804_2003.reporttype = 'STR'::text --AND batch_res_1804_2003.reportformattype = 'ARF'::text
+)
+, cte2 as (
+select distinct batchid, rptsernum,nationality from  risk_priority.arfinp_1804_2003
+union
+select distinct batchid, rptsernum, nationality from  risk_priority.arfinp2004_2212
+union
+select distinct batchid, rptsernum, nationality from risk_priority.trftrn_final_str
+union 
+select distinct batchid, rptsernum, nationality from risk_priority.trftrn_1804_2003
+)
+
+select nationality, count(distinct batchid::text||rptsernum::text) filter (where batchid between 1804010000 and 1903319999) FY_1819,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 1904010000 and 2003319999) FY_1920,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2004010000 and 2103319999) FY_2021,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2104010000 and 2203319999) FY_2122,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2204010000 and 2303319999) FY_2223,
+	count(distinct batchid::text||rptsernum::text) as countt
+	from  cte2
+where batchid in
+(
+	select distinct batchid from cte1 where batchid not in
+	(select originalbatchid from cte1 union select batchid from cte1 where batchtype='D' )
+         )
+		  and (batchid,rptsernum) not in ( SELECT DISTINCT isolated_str_1804_2212.batchid,
+            isolated_str_1804_2212.reportserialnum AS rptsernum
+           FROM risk_priority.isolated_str_1804_2212)
+group by nationality
+order by countt desc
+
+---------------------------------------------------- Primary Country Wise-----------------------------------
+
+with cte1 as
+(
+      SELECT *
+           FROM risk_priority.batch_res_final
+          WHERE batch_res_final.reporttype = 'STR'::text --AND batch_res_final.reportformattype = 'ARF'::text
+        UNION
+         SELECT *
+           FROM risk_priority.batch_res_1804_2003
+          WHERE batch_res_1804_2003.reporttype = 'STR'::text --AND batch_res_1804_2003.reportformattype = 'ARF'::text
+)
+, cte2 as (
+select distinct batchid, rptsernum,commcountrycode from  risk_priority.arfinp_1804_2003
+union
+select distinct batchid, rptsernum, commcountrycode from  risk_priority.arfinp2004_2212
+union
+select distinct batchid, rptsernum, commcountrycode from risk_priority.arflpe_1804_2003
+union
+select distinct batchid, rptsernum, commcountrycode from risk_priority.arflpe2004_2212
+union
+select distinct batchid, rptsernum, countrycode as commcountrycode from risk_priority.trftrn_final_str
+union 
+select distinct batchid, rptsernum, countrycode as commcountrycode from risk_priority.trftrn_1804_2003
+)
+
+select commcountrycode, count(distinct batchid::text||rptsernum::text) filter (where batchid between 1804010000 and 1903319999) FY_1819,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 1904010000 and 2003319999) FY_1920,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2004010000 and 2103319999) FY_2021,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2104010000 and 2203319999) FY_2122,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2204010000 and 2303319999) FY_2223,
+	count(distinct batchid::text||rptsernum::text) as countt
+	from  cte2
+where batchid in
+(
+	select distinct batchid from cte1 where batchid not in
+	(select originalbatchid from cte1 union select batchid from cte1 where batchtype='D' )
+         )
+		  and (batchid,rptsernum) not in ( SELECT DISTINCT isolated_str_1804_2212.batchid,
+            isolated_str_1804_2212.reportserialnum AS rptsernum
+           FROM risk_priority.isolated_str_1804_2212)
+group by commcountrycode
+order by countt desc
+
+------------------------------------ARFBRC wise 5 year STR count------------------------
+
+with cte1 as
+(
+      SELECT *
+           FROM risk_priority.batch_res_final
+          WHERE batch_res_final.reporttype = 'STR'::text --AND batch_res_final.reportformattype = 'ARF'::text
+        UNION
+         SELECT *
+           FROM risk_priority.batch_res_1804_2003
+          WHERE batch_res_1804_2003.reporttype = 'STR'::text --AND batch_res_1804_2003.reportformattype = 'ARF'::text
+)
+, cte2 as (
+select distinct batchid, rptsernum,statecode from  arfbrc_full_dump.arfbrc_0420_1222
+union
+select distinct batchid, rptsernum, statecode from  risk_priority.arfbrc_1804_2003
+)
+,cte3 as (
+select upper(trim(statecode)) as statecodes, count(distinct batchid::text||rptsernum::text) filter (where batchid between 1804010000 and 1903319999) FY_1819,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 1904010000 and 2003319999) FY_1920,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2004010000 and 2103319999) FY_2021,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2104010000 and 2203319999) FY_2122,
+	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2204010000 and 2303319999) FY_2223,
+	count(distinct batchid::text||rptsernum::text) as countt
+	from  cte2
+where batchid in
+(
+	select distinct batchid from cte1 where batchid not in
+	(select originalbatchid from cte1 union select batchid from cte1 where batchtype='D' )
+         )
+		  and (batchid,rptsernum) not in ( SELECT DISTINCT isolated_str_1804_2212.batchid,
+            isolated_str_1804_2212.reportserialnum AS rptsernum
+           FROM risk_priority.isolated_str_1804_2212)
+group by statecodes
+order by countt desc
+    )
+ select distinct gg.state,cte3.* from cte3 left join public.geography_master gg on cte3.statecodes=gg.statecode
+ order by cte3.countt desc
+------------------------------------------------------
+To get arfbrc data removing isolated and join with geography master table
+
+--select min(batchid),max(batchid) from arfbrc_full_dump.arfbrc_0420_1222
+--select min(batchid),max(batchid) from risk_priority.arfbrc_1804_2003
+
+with cte1 as
+(
+      SELECT *
+           FROM risk_priority.batch_res_final
+          WHERE batch_res_final.reporttype = 'STR'::text --AND batch_res_final.reportformattype = 'ARF'::text
+        UNION
+         SELECT *
+           FROM risk_priority.batch_res_1804_2003
+          WHERE batch_res_1804_2003.reporttype = 'STR'::text --AND batch_res_1804_2003.reportformattype = 'ARF'::text
+)
+, cte2 as (
+select distinct batchid, rptsernum,statecode from  arfbrc_full_dump.arfbrc_0420_1222
+union
+select distinct batchid, rptsernum, statecode from  risk_priority.arfbrc_1804_2003
+)
+,cte3 as (
+select upper(trim(statecode)) as statecodes,batchid,rptsernum,batchid::text||'|'||rptsernum::text as brn
+--  count(distinct batchid::text||rptsernum::text) filter (where batchid between 1804010000 and 1903319999) FY_1819,
+--	count(distinct batchid::text||rptsernum::text) filter (where batchid between 1904010000 and 2003319999) FY_1920,
+--	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2004010000 and 2103319999) FY_2021,
+--	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2104010000 and 2203319999) FY_2122,
+--	count(distinct batchid::text||rptsernum::text) filter (where batchid between 2204010000 and 2303319999) FY_2223,
+--	count(distinct batchid::text||rptsernum::text) as countt
+	from  cte2
+where batchid in
+(
+	select distinct batchid from cte1 where batchid not in
+	(select originalbatchid from cte1 union select batchid from cte1 where batchtype='D' )
+         )
+		  and (batchid,rptsernum) not in ( SELECT DISTINCT isolated_str_1804_2212.batchid,
+            isolated_str_1804_2212.reportserialnum AS rptsernum
+           FROM risk_priority.isolated_str_1804_2212)
+--group by statecodes,batchid,rptsernum,brn
+--order by countt desc
+    )
+ select distinct gg.state,gg.pincode,gg.district,gg.statecode,cte3.* from cte3 left join public.geography_master gg on cte3.statecodes=gg.statecode
+-- order by cte3.countt desc
+--select  from public.geography_master limit 10
+-------------------------------------------------------
+
+//172.16.22.16 qlik
+
+-------------------------------------
+Macro level STR analysis followup
+
+with cte1 as
+(
+      (SELECT batchid, b.fiureid, coalesce(r.entityname,b.entityname) as entityname, coalesce(r.recategory, b.recategory) as recategory
+           FROM risk_priority.batch_res_final b
+	left join public.re_master r on r.fiureid = b.fiureid
+          WHERE b.reporttype = 'STR'::text --AND b.reportformattype = 'ARF'::text
+	and b.batchtype<>'D')
+        UNION
+          (SELECT batchid, b.fiureid, coalesce(r.entityname,b.entityname) as entityname, coalesce(r.recategory, b.recategory) as recategory
+           FROM risk_priority.batch_res_1804_2003 b
+	left join public.re_master r on r.fiureid = b.fiureid
+          WHERE b.reporttype = 'STR'::text --AND b.reportformattype = 'ARF'::text
+	and b.batchtype<>'D')
+)
+, cte2 as (
+select distinct cte1.batchid, rptsernum, fiureid, entityname, recategory,groundsofsusp,detailsofinvestigations,mainpersonname from  risk_priority.report_5_years r inner join cte1 on r.batchid=cte1.batchid
+ where fiureid in ('BAOTH00011')) --'BAOTH00011','INOTH00048','BAOTH00017','BAUCB00152','BAUCB01883'))
+
+, cte3 as (
+select entityname,batchid, rptsernum, fiureid, recategory,groundsofsusp,detailsofinvestigations,mainpersonname,(coalesce(groundsofsusp,'null'::text)||coalesce(detailsofinvestigations::text,'null'::text)) gos_doi
+from  cte2
+where batchid not in
+(
+select originalbatchid from risk_priority.batch_res_1804_2003 
+union
+select originalbatchid from risk_priority.batch_res_final
+)
+and (batchid,rptsernum) not in ( SELECT DISTINCT isolated_str_1804_2212.batchid,
+isolated_str_1804_2212.reportserialnum AS rptsernum
+FROM risk_priority.isolated_str_1804_2212))
+    
+--select * from cte3 limit 3
+
+select a.* from cte3 a where (LENGTH(gos_doi))<500
+
+--2107277130	5
+--(LENGTH(NVL(GROUNDSOFSUSP,0)) +LENGTH(NVL(DETAILSOFINVESTIGATIONS,0)))< 500 
+
+    
+    
+--SELECT b.cluster_no,b.dup_no,a.*
+--	FROM cte3 a inner join  (
+--select row_number() over ( order by dup_no desc) cluster_no, * from (
+--SELECT gos_doi,count(1) dup_no
+--FROM cte3 group by 1 having count(1)>1) b)b on a.gos_doi=b.gos_doi order by  b.cluster_no
+    
+--select coalesce(groundsofsusp,0::text),coalesce(DETAILSOFINVESTIGATIONS,0::text) from risk_priority.report_5_years limit 5
+
+------------------------------------------------------------------------------
+
+with cte1 as(SELECT batchid, rptsernum, brn, groundsofsusp, detailsofinvestigations, crime_keyword, main_bucket, yr, financial_year
+FROM gos_cluster.adverse_keyword_dump),
+with cte2 as(select * from (
+select distinct batchid, rptsernum,statecode from  arfbrc_full_dump.arfbrc_0420_1222
+union
+select distinct batchid, rptsernum, statecode from  risk_priority.arfbrc_1804_2003
+)z
+where (batchid,rptsernum) in(select distinct batchid,rptsernum from gos_cluster.adverse_keyword_dump))
+,cte3 as (
+select upper(trim(statecode)) as statecodes,batchid,rptsernum,batchid::text||'|'||rptsernum::text as brn
+from  cte2
+)
+select distinct gg.state,gg.pincode,gg.district,gg.statecode,cte3.* from cte3 left join public.geography_master gg on cte3.statecodes=gg.statecode
+
+-----------------------------------------------------------------------
+
+   
+select b.*,crime_keyword, main_bucket from gos_cluster.branch_details b
+inner join gos_cluster.inplpe_keyword_match i on i.batchid=b.batchid and i.rptsernum=b.rptsernum and i.accountnum =b.accountnum 
+
+
+
+select a.*,g.district from gos_cluster.adverse_keyword_dump_heatmap_qlik a
+inner join public.geography_master g on a.pincode_new=g.pincode and g.statecode=a.statecode
+-----------------------------------------------
+
+Creating index postgres
+
+CREATE INDEX idx_branch_details_batchid_rptser_acc_new
+    ON gos_cluster.branch_details_new1 USING btree
+    (batchid, rptsernum, accountnum COLLATE pg_catalog."default")
+    TABLESPACE pg_default;
+CREATE INDEX idx_branch_details_statecode_new
+    ON gos_cluster.branch_details_new1 USING btree
+    (statecode COLLATE pg_catalog."default")
+    TABLESPACE pg_default;
+
+-------------------------------------------------------
+
+with cte1 as
+(
+SELECT  (branchrefnum::text||fiureid::text) as brn,fiureid,main_bucket,address,
+count(distinct batchid::text||rptsernum::text) strs_cnt
+	FROM gos_cluster.str_analysis_for_fatf
+    group by (branchrefnum::text||fiureid::text),fiureid,main_bucket,address
+)
+ 
+select c1.*,entityname,row_number() over(partition by brn order by strs_cnt desc) counts from cte1 c1 inner join
+ public.re_master re on c1.fiureid=re.fiureid
+ order by strs_cnt desc
+--------------------------------------
+select *,row_number() over(partition by main_bucket order by countt desc)  from(
+select (trim(branchrefnum)||'|'||fiureid)as brid, main_bucket, count(main_bucket)countt,address,entityname from gos_cluster.str_analysis_for_fatf
+group by (trim(branchrefnum)||'|'||fiureid),main_bucket,address,entityname
+)z
+where brid='0512014|BASCB00071'
+order by brid desc
+
+---------------------------------------------
+same brn in multiple branches
+
+select batchid::text||'-'||rptsernum::text brn, count(distinct 'brid'||'-'||branchrefnum||'|'||fiureid)countt,string_agg(distinct 'brid'||'-'||branchrefnum||'|'||fiureid,',') branches
+  FROM gos_cluster.str_analysis_for_fatf
+  group by brn
+  having(count(distinct 'brid'||'-'||branchrefnum||'|'||fiureid))>1
+  order by countt desc
+----------------------------------
+adverse keyword breakup yoy
+with cte1 as(select batchid,rpt,disseminationdate from gos_cluster.case_dissemination_final_2305 where batchid>'1804010000'),
+cte2 as (select ad.*,cte1.disseminationdate from gos_cluster.adverse_keyword_dump ad join cte1 on ad.batchid=cte1.batchid and ad.rptsernum=cte1.rpt)
+
+select main_bucket,
+count(distinct brn) filter(where disseminationdate between '2018-04-01' and '2019-03-31') as FY_2018_19,
+count(distinct brn) filter(where disseminationdate between '2019-04-01' and '2020-03-31') as FY_2019_20,
+count(distinct brn) filter(where disseminationdate between '2020-04-01' and '2021-03-31') as FY_2020_21,
+count(distinct brn) filter(where disseminationdate between '2021-04-01' and '2022-03-31') as FY_2021_22,
+count(distinct brn) filter(where disseminationdate between '2022-04-01' and '2023-03-31') as FY_2022_23,
+count(distinct brn) summ from cte2
+group by main_bucket
+order by summ desc
+--------------------------------
+rANKING IN eXCEL
+=SUMPRODUCT(($A$2:$A$19009=A2) * (E2<$E$2:$E$19009)) +1
+----------------------------------
+
+-------for PI and PPI
+
+with cte1 as
+(
+      (SELECT batchid, b.fiureid, coalesce(r.entityname,b.entityname) as entityname, coalesce(r.recategory, b.recategory) as recategory
+           FROM risk_priority.batch_res_final b
+	left join public.re_master r on r.fiureid = b.fiureid
+          WHERE b.reporttype = 'STR'::text and b.fiureid in ('FICSO00046', 'FIAPR00126', 'FICSO00041', 'ZZZZZ00052', 'FIOTH00007', 'BAOTH00008', 'FICSO00031', 'INOTH00253', 'FIMTA00020', 'FICSO00035', 'ZZZZZ00022', 'FICSO00061', 'ZZZZZ00034', 'FICSO00065', 'INOTH00257', 'FICSO00038', 'FIAPR01125', 'FICSO00036', 'FICSO00057', 'FICSO00054', 'FICSO00062', 'FICSO00033', 'ZZZZZ00021', 'FINBF13138', 'FIOTH00382', 'FICSO00059', 'ZZZZZ00016', 'FICSO00058', 'FICSO00005', 'FICSO00049')
+	and b.batchtype<>'D')
+        UNION
+          (SELECT batchid, b.fiureid, coalesce(r.entityname,b.entityname) as entityname, coalesce(r.recategory, b.recategory) as recategory
+           FROM str_prioritization2.batch_22_23 b
+	left join public.re_master r on r.fiureid = b.fiureid
+          WHERE b.reporttype = 'STR'::text and b.fiureid in ('FICSO00046', 'FIAPR00126', 'FICSO00041', 'ZZZZZ00052', 'FIOTH00007', 'BAOTH00008', 'FICSO00031', 'INOTH00253', 'FIMTA00020', 'FICSO00035', 'ZZZZZ00022', 'FICSO00061', 'ZZZZZ00034', 'FICSO00065', 'INOTH00257', 'FICSO00038', 'FIAPR01125', 'FICSO00036', 'FICSO00057', 'FICSO00054', 'FICSO00062', 'FICSO00033', 'ZZZZZ00021', 'FINBF13138', 'FIOTH00382', 'FICSO00059', 'ZZZZZ00016', 'FICSO00058', 'FICSO00005', 'FICSO00049')
+	and b.batchtype<>'D')
+)
+, cte2 as (
+select distinct cte1.batchid, rptsernum, fiureid, entityname, recategory,mainpersonname,groundsofsusp,detailsofinvestigations,sourceofalert from  risk_priority.report_res_final_april20_march23 r inner join cte1 on r.batchid=cte1.batchid
+)
+
+select * from  cte2
+where batchid not in
+(
+select originalbatchid from str_prioritization2.batch_22_23
+union
+select originalbatchid from risk_priority.batch_res_final
+)
+and (batchid,rptsernum) not in ( SELECT DISTINCT isolated_str_1804_2212.batchid,
+isolated_str_1804_2212.reportserialnum AS rptsernum
+FROM risk_priority.isolated_str_1804_2212)
+--group by recategory
+--order by countt desc
+-----------------------------------------------
+full dump pan mobile in pi and ppi
+with cte1 as
+(
+      (SELECT batchid, b.fiureid, coalesce(r.entityname,b.entityname) as entityname, coalesce(r.recategory, b.recategory) as recategory
+           FROM risk_priority.batch_res_final b
+	left join public.re_master r on r.fiureid = b.fiureid
+          WHERE b.reporttype = 'STR'::text and b.fiureid in ('FICSO00046', 'FIAPR00126', 'FICSO00041', 'ZZZZZ00052', 'FIOTH00007', 'BAOTH00008', 'FICSO00031', 'INOTH00253', 'FIMTA00020', 'FICSO00035', 'ZZZZZ00022', 'FICSO00061', 'ZZZZZ00034', 'FICSO00065', 'INOTH00257', 'FICSO00038', 'FIAPR01125', 'FICSO00036', 'FICSO00057', 'FICSO00054', 'FICSO00062', 'FICSO00033', 'ZZZZZ00021', 'FINBF13138', 'FIOTH00382', 'FICSO00059', 'ZZZZZ00016', 'FICSO00058', 'FICSO00005', 'FICSO00049')
+	and b.batchtype<>'D')
+        UNION
+          (SELECT batchid, b.fiureid, coalesce(r.entityname,b.entityname) as entityname, coalesce(r.recategory, b.recategory) as recategory
+           FROM str_prioritization2.batch_22_23 b
+	left join public.re_master r on r.fiureid = b.fiureid
+          WHERE b.reporttype = 'STR'::text and b.fiureid in ('FICSO00046', 'FIAPR00126', 'FICSO00041', 'ZZZZZ00052', 'FIOTH00007', 'BAOTH00008', 'FICSO00031', 'INOTH00253', 'FIMTA00020', 'FICSO00035', 'ZZZZZ00022', 'FICSO00061', 'ZZZZZ00034', 'FICSO00065', 'INOTH00257', 'FICSO00038', 'FIAPR01125', 'FICSO00036', 'FICSO00057', 'FICSO00054', 'FICSO00062', 'FICSO00033', 'ZZZZZ00021', 'FINBF13138', 'FIOTH00382', 'FICSO00059', 'ZZZZZ00016', 'FICSO00058', 'FICSO00005', 'FICSO00049')
+	and b.batchtype<>'D')
+)
+, cte2 as (
+select distinct cte1.batchid,r.rptsernum,r.pan,r.mobile,r.personname from str_prioritization2.inp_res r inner join cte1 on r.batchid=cte1.batchid
+union
+select distinct cte1.batchid,r.rptsernum,r.pan,r.mobile,r.personname from str_prioritization2.lpe_res r inner join cte1 on r.batchid=cte1.batchid
+union
+select distinct cte1.batchid,r.rptsernum,r.pan,r.mobile,r.customername as personname from risk_priority.trftrn_final_str r inner join cte1 on r.batchid=cte1.batchid
+)
+
+select * from  cte2
+where batchid not in
+(
+select originalbatchid from str_prioritization2.batch_22_23
+union
+select originalbatchid from risk_priority.batch_res_final
+)
+and (batchid,rptsernum) not in ( SELECT DISTINCT isolated_str_1804_2212.batchid,
+isolated_str_1804_2212.reportserialnum AS rptsernum
+FROM risk_priority.isolated_str_1804_2212)
+--group by recategory
+--order by countt desc
