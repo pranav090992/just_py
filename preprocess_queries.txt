@@ -1,0 +1,482 @@
+------ trim accountnum most important
+
+
+---Batch----
+
+select distinct b.batchid, b.ORIGINALBATCHID, b.batchtype, b.fiureid,entityname,recategory 
+from public.batch_2 b where reporttype ='CTR' 
+and fiureid not in ('XXXXX00001' 'XXXXX99999','XXXXXXXXXX')
+
+
+---REPORT----
+
+select distinct r.batchid,r.rptsernum,upper(trim(r.mainpersonname)) mainpersonname 
+from public.report_2 r inner join 
+( select batchid from  public.batch_2 b 
+where reporttype ='CTR' and fiureid not in ('XXXXX00001' 'XXXXX99999','XXXXXXXXXX')) bb on bb.batchid=r.batchid
+
+----bracnch----
+
+select distinct br.batchid,br.rptsernum, br.BRANCHREFNUM, br.statecode, upper(trim(br.city)) city, br.pincode,br.statecode||br.pincode as statepin,br.accountnum 
+from public.branch_2 br
+inner join 
+( select batchid from  public.batch_2 b
+where  reporttype ='CTR' and fiureid not in ('XXXXX00001' 'XXXXX99999','XXXXXXXXXX')) 
+bb on bb.batchid=br.batchid
+
+
+-----account-----
+
+select distinct ac.batchid, ac.rptsernum, ac.AccountType, ac.AccountHolderType, ac.ACCOUNTNUM,dateofopening,riskrating,cumulativecrturnover,cumulativedrturnover,cumulativecashdpstturnover,cumulativecashwdturnover,upper(trim(ac.HOLDERNAME)) HOLDERNAME 
+from public.acc_2 ac inner join 
+( select batchid from  public.batch_2 b where reporttype ='CTR' and fiureid not in ('XXXXX00001' 'XXXXX99999','XXXXXXXXXX')) bb on bb.batchid=ac.batchid
+
+----transaction-----
+
+select tr.batchid, tr.rptsernum, tr.ACCOUNTNUM, tr.TRANSACTIONMODE, tr.currency,count(1) as TRANSACTION_COUNT,
+SUM(case when tr.DEBITCREDIT='D' then tr.AMOUNT end) as debit_amount, 
+SUM(case when tr.DEBITCREDIT='C' then tr.AMOUNT end) as credit_amount, sum(tr.AMOUNT) as total_amount 
+from public.trans_2 tr inner join ( select batchid from  public.batch_2 b where reporttype ='CTR' and fiureid not in ('XXXXX00001' 'XXXXX99999','XXXXXXXXXX')) bb 
+on bb.batchid=tr.batchid group by tr.batchid, tr.rptsernum, tr.ACCOUNTNUM, tr.TRANSACTIONMODE, tr.currency
+
+----inp-----
+select ACCOUNTNUM, tr.BATCHID, RPTSERNUM, RELATIONFLAG, DELETEDFLAG, DOB, upper(trim(EMAIL)) EMAIL, IDENTIFICATIONNUMBER, IDENTIFICATIONTYPE, ISSUINGAUTHORITY, MOBILE, 
+case when length(trim(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(trim(mobile::text),'[^0-9]',''),'^(0+)',''),'^([0-9])\\1{6,}',''),'^([0-9])([0-9])\\2{6,}',''),'(9999999999|9876543210|9876543211)',''))) between 6 and 14  then trim(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(trim(mobile::text),'[^0-9]',''),'^(0+)',''),'^([0-9])\\1{6,}',''),'^([0-9])([0-9])\\2{6,}',''),'(9876543210|9876543211)','')) else null end MOBILE_CLEAN, 
+NATIONALITY, upper(trim(OCCUPATION)) OCCUPATION, PAN, trim(regexp_replace(trim(pan),'(XXXXX0000X|XXXXX9999X|ABCDE1234F|XXXXX1234X|AAAAA0000A|AAAAA1111A|AAAAA1234A|AAAAA9999A|XXXXX1111X)','')) pan_clean, upper(trim(PERSONNAME)) PERSONNAME , UIN 
+from public.inp_2 tr inner join ( select batchid from  public.batch_2 b where reporttype ='CTR' and fiureid not in ('XXXXX00001' 'XXXXX99999','XXXXXXXXXX')) bb 
+on bb.batchid=tr.batchid and tr.RELATIONFLAG='A'
+
+----lpe-----
+
+select ACCOUNTNUM, tr.BATCHID, RPTSERNUM, RELATIONFLAG, DELETEDFLAG, upper(trim(EMAIL)) EMAIL, MOBILE,
+case when length(trim(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(trim(mobile::text),'[^0-9]',''),'^(0+)',''),'^([0-9])\\1{6,}',''),'^([0-9])([0-9])\\2{6,}',''),'(9999999999|9876543210|9876543211)',''))) between 6 and 14  then trim(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(trim(mobile::text),'[^0-9]',''),'^(0+)',''),'^([0-9])\\1{6,}',''),'^([0-9])([0-9])\\2{6,}',''),'(9876543210|9876543211)','')) end MOBILE_CLEAN, 
+PAN, trim(regexp_replace(trim(pan),'(XXXXX0000X|XXXXX9999X|ABCDE1234F|XXXXX1234X|AAAAA0000A|AAAAA1111A|AAAAA1234A|AAAAA9999A|XXXXX1111X)','')) pan_clean, upper(trim(PERSONNAME)) PERSONNAME, 
+UIN, upper(trim(NATUREOFBUSINESS)) NATUREOFBUSINESS 
+from public.lpe_2 tr inner join 
+(select batchid from  public.batch_2 b where reporttype ='CTR' and fiureid not in ('XXXXX00001' 'XXXXX99999','XXXXXXXXXX')) bb 
+on bb.batchid=tr.batchid and tr.RELATIONFLAG='A'
+
+
+
+
+
+---------branch creation table-------
+
+CREATE TABLE IF NOT EXISTS public.branch_2
+(
+    batchid bigint,
+    rptsernum bigint,
+    accountnum text COLLATE pg_catalog."default",
+    branchrefnumtype text COLLATE pg_catalog."default",
+    branchname text COLLATE pg_catalog."default",
+    branchrefnum text COLLATE pg_catalog."default",
+    address text COLLATE pg_catalog."default",
+    city text COLLATE pg_catalog."default",
+    statecode text COLLATE pg_catalog."default",
+    pincode text COLLATE pg_catalog."default",
+    countrycode text COLLATE pg_catalog."default",
+    telephone text COLLATE pg_catalog."default",
+    mobile text COLLATE pg_catalog."default",
+    fax text COLLATE pg_catalog."default",
+    branchemail text COLLATE pg_catalog."default",
+    remarks text COLLATE pg_catalog."default",
+    deletedflag text COLLATE pg_catalog."default",
+    creationdate text COLLATE pg_catalog."default",
+    createdby text COLLATE pg_catalog."default",
+    xmlindexid text COLLATE pg_catalog."default",
+    accountxmlindexid text COLLATE pg_catalog."default",
+    reportxmlindexid text COLLATE pg_catalog."default",
+    batchxmlindexid text COLLATE pg_catalog."default"
+)
+
+ALTER TABLE IF EXISTS public.branch_2
+    OWNER to postgres;
+	
+
+-------inp table creation--------
+
+CREATE TABLE IF NOT EXISTS public.inp_2
+(
+    batchid bigint,
+    rptsernum bigint,
+    accountnum text COLLATE pg_catalog."default",
+    personname text COLLATE pg_catalog."default",
+    customerid text COLLATE pg_catalog."default",
+    relationflag text COLLATE pg_catalog."default",
+    commaddress text COLLATE pg_catalog."default",
+    commcity text COLLATE pg_catalog."default",
+    commstatecode text COLLATE pg_catalog."default",
+    commpincode text COLLATE pg_catalog."default",
+    commcountrycode text COLLATE pg_catalog."default",
+    secaddress text COLLATE pg_catalog."default",
+    seccity text COLLATE pg_catalog."default",
+    secstatecode text COLLATE pg_catalog."default",
+    secpincode text COLLATE pg_catalog."default",
+    seccountrycode text COLLATE pg_catalog."default",
+    telephone text COLLATE pg_catalog."default",
+    mobile text COLLATE pg_catalog."default",
+    fax text COLLATE pg_catalog."default",
+    email text COLLATE pg_catalog."default",
+    pan text COLLATE pg_catalog."default",
+    uin text COLLATE pg_catalog."default",
+    gender text COLLATE pg_catalog."default",
+    dob text COLLATE pg_catalog."default",
+    identificationtype text COLLATE pg_catalog."default",
+    identificationnumber text COLLATE pg_catalog."default",
+    issuingauthority text COLLATE pg_catalog."default",
+    placeofissue text COLLATE pg_catalog."default",
+    nationality text COLLATE pg_catalog."default",
+    placeofwork text COLLATE pg_catalog."default",
+    fatherorspouse text COLLATE pg_catalog."default",
+    occupation text COLLATE pg_catalog."default",
+    deletedflag text COLLATE pg_catalog."default",
+    creationdate text COLLATE pg_catalog."default",
+    createdby text COLLATE pg_catalog."default",
+    xmlindexid text COLLATE pg_catalog."default",
+    accountxmlindexid text COLLATE pg_catalog."default",
+    reportxmlindexid text COLLATE pg_catalog."default",
+    batchxmlindexid text COLLATE pg_catalog."default",
+    branchrefnum text COLLATE pg_catalog."default"
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.inp_2
+    OWNER to postgres;
+	
+------lpe creation-----------------------
+
+CREATE TABLE IF NOT EXISTS public.lpe_2
+(
+    batchid bigint,
+    rptsernum bigint,
+    accountnum text COLLATE pg_catalog."default",
+    personname text COLLATE pg_catalog."default",
+    customerid text COLLATE pg_catalog."default",
+    relationflag text COLLATE pg_catalog."default",
+    commaddress text COLLATE pg_catalog."default",
+    commcity text COLLATE pg_catalog."default",
+    commstatecode text COLLATE pg_catalog."default",
+    commpincode text COLLATE pg_catalog."default",
+    commcountrycode text COLLATE pg_catalog."default",
+    secaddress text COLLATE pg_catalog."default",
+    seccity text COLLATE pg_catalog."default",
+    secstatecode text COLLATE pg_catalog."default",
+    secpincode text COLLATE pg_catalog."default",
+    seccountrycode text COLLATE pg_catalog."default",
+    telephone text COLLATE pg_catalog."default",
+    mobile text COLLATE pg_catalog."default",
+    fax text COLLATE pg_catalog."default",
+    email text COLLATE pg_catalog."default",
+    pan text COLLATE pg_catalog."default",
+    uin text COLLATE pg_catalog."default",
+    constitutiontype text COLLATE pg_catalog."default",
+    registrationnumber text COLLATE pg_catalog."default",
+    dateofincorporation text COLLATE pg_catalog."default",
+    placeofregistration text COLLATE pg_catalog."default",
+    countrycode text COLLATE pg_catalog."default",
+    natureofbusiness text COLLATE pg_catalog."default",
+    deletedflag text COLLATE pg_catalog."default",
+    creationdate text COLLATE pg_catalog."default",
+    createdby text COLLATE pg_catalog."default",
+    xmlindexid text COLLATE pg_catalog."default",
+    accountxmlindexid text COLLATE pg_catalog."default",
+    reportxmlindexid text COLLATE pg_catalog."default",
+    batchxmlindexid text COLLATE pg_catalog."default",
+    branchrefnum text COLLATE pg_catalog."default"
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.lpe_2
+    OWNER to postgres;
+	
+------------transaction table creation--------
+
+
+CREATE TABLE IF NOT EXISTS public.trans_2
+(
+    batchid bigint,
+    rptsernum bigint,
+    accountnum text COLLATE pg_catalog."default",
+    dateoftransaction text COLLATE pg_catalog."default",
+    transactionid text COLLATE pg_catalog."default",
+    transactionmode text COLLATE pg_catalog."default",
+    debitcredit text COLLATE pg_catalog."default",
+    amount double precision,
+    currency text COLLATE pg_catalog."default",
+    producttype text COLLATE pg_catalog."default",
+    identifier text COLLATE pg_catalog."default",
+    transactiontype text COLLATE pg_catalog."default",
+    units text COLLATE pg_catalog."default",
+    rate text COLLATE pg_catalog."default",
+    dispositionsoffunds text COLLATE pg_catalog."default",
+    relatedaccountnum text COLLATE pg_catalog."default",
+    relatedinstname text COLLATE pg_catalog."default",
+    relatedinstrefnum text COLLATE pg_catalog."default",
+    remarks text COLLATE pg_catalog."default",
+    deletedflag text COLLATE pg_catalog."default",
+    creationdate text COLLATE pg_catalog."default",
+    createdby text COLLATE pg_catalog."default",
+    xmlindexid text COLLATE pg_catalog."default",
+    accountxmlindexid text COLLATE pg_catalog."default",
+    reportxmlindexid text COLLATE pg_catalog."default",
+    batchxmlindexid text COLLATE pg_catalog."default",
+    branchrefnum text COLLATE pg_catalog."default"
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.trans_2
+
+-----batch table creatiobn-------
+
+CREATE TABLE IF NOT EXISTS public.batch_2
+(
+    reportformattype text COLLATE pg_catalog."default",
+    reporttype text COLLATE pg_catalog."default",
+    datastructver text COLLATE pg_catalog."default",
+    generationutlver text COLLATE pg_catalog."default",
+    datasource text COLLATE pg_catalog."default",
+    entityname text COLLATE pg_catalog."default",
+    recategory text COLLATE pg_catalog."default",
+    uniquecode text COLLATE pg_catalog."default",
+    fiureid text COLLATE pg_catalog."default",
+    poname text COLLATE pg_catalog."default",
+    podesignation text COLLATE pg_catalog."default",
+    poaddress text COLLATE pg_catalog."default",
+    pocity text COLLATE pg_catalog."default",
+    postatecode text COLLATE pg_catalog."default",
+    popincode text COLLATE pg_catalog."default",
+    pocountrycode text COLLATE pg_catalog."default",
+    potelephone text COLLATE pg_catalog."default",
+    pomobile text COLLATE pg_catalog."default",
+    pofax text COLLATE pg_catalog."default",
+    poemail text COLLATE pg_catalog."default",
+    batchnum text COLLATE pg_catalog."default",
+    batchdate text COLLATE pg_catalog."default",
+    monthofreport bigint,
+    yearofrpeport bigint,
+    operationalmode text COLLATE pg_catalog."default",
+    batchtype text COLLATE pg_catalog."default",
+    originalbatchid bigint,
+    reasonofrevision text COLLATE pg_catalog."default",
+    batchid bigint,
+    pkicertificatenum text COLLATE pg_catalog."default",
+    creationdate text COLLATE pg_catalog."default",
+    createdby text COLLATE pg_catalog."default",
+    xmlindexid text COLLATE pg_catalog."default"
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.batch_2
+    OWNER to postgres;
+	
+-------- report table creation-----------------------
+
+CREATE TABLE IF NOT EXISTS public.report_2
+(
+    rptsernum bigint,
+    originalrptsernum bigint,
+    mainpersonname text COLLATE pg_catalog."default",
+    sourceofalert text COLLATE pg_catalog."default",
+    suspduetoproceedsofcrime text COLLATE pg_catalog."default",
+    suspduetocomplextrans text COLLATE pg_catalog."default",
+    suspduetonoecorationale text COLLATE pg_catalog."default",
+    suspoffinancingofterrorism text COLLATE pg_catalog."default",
+    attemptedtransaction text COLLATE pg_catalog."default",
+    groundsofsusp text COLLATE pg_catalog."default",
+    detailsofinvestigations text COLLATE pg_catalog."default",
+    leainformed text COLLATE pg_catalog."default",
+    leadetails text COLLATE pg_catalog."default",
+    priorityrating text COLLATE pg_catalog."default",
+    reportcoverage text COLLATE pg_catalog."default",
+    additionaldocuments text COLLATE pg_catalog."default",
+    batchid bigint,
+    deletedflag text COLLATE pg_catalog."default",
+    creationdate text COLLATE pg_catalog."default",
+    createdby text COLLATE pg_catalog."default",
+    xmlindexid text COLLATE pg_catalog."default",
+    batchxmlindexid text COLLATE pg_catalog."default"
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.report_2
+    OWNER to postgres;
+
+/data1/pgsql_data/Election_CTR_North_East/SAL_NOV_2022_CTR_DUMP/ARFBATCH.csv
+/data1/pgsql_data/Election_CTR_North_East/SAL_OCT_CTR_DUMP/
+
+
+\copy branch_2 from '/data1/pgsql_data/Election_CTR_Data_Files/SAL_JUN_JUL_AUG_2022/ARFBRC.csv' delimiter ',' csv header
+
+\copy risk_priority.dissemination_data from '/data1/pgsql_data/DISSEMINATION_DETAILS_16-03-23_latest.csv' delimiter ',' csv header
+
+\copy batch_2 from '/data1/pgsql_data/Election_CTR_Data_Files/SAL_JUN_JUL_AUG_2022/BATCH.csv' delimiter ',' csv header
+
+\copy report_2 from '/data1/pgsql_data/Election_CTR_Data_Files/SAL_JUN_JUL_AUG_2022/REPORT.csv' delimiter ',' csv header
+
+
+\copy inp_2 from '/data1/pgsql_data/Election_CTR_Data_Files/SAL_JUN_JUL_AUG_2022/ARFINP.csv' delimiter ',' csv header
+
+
+\copy lpe_2 from '/data1/pgsql_data/Election_CTR_Data_Files/SAL_JUN_JUL_AUG_2022/ARFLPE.csv' delimiter ',' csv header
+
+
+\copy acc_2 from '/data1/pgsql_data/Election_CTR_Data_Files/SAL_JUN_JUL_AUG_2022/ARFACC.csv' delimiter ',' csv header
+
+
+\copy trans_2 from '/data1/pgsql_data/Election_CTR_Data_Files/SAL_JUN_JUL_AUG_2022/ARFTRN.csv' delimiter ',' csv header
+
+\copy north_east.batch_2 from '/data1/pgsql_data/Election_CTR_North_East/SAL_NOV_2022_CTR_DUMP/ARFBATCH.csv' delimiter ',' csv header
+
+\copy north_east.branch_2 from '/data1/pgsql_data/Election_CTR_North_East/SAL_NOV_2022_CTR_DUMP/ARFBRC.csv' delimiter ',' csv header
+
+\copy north_east.acc_2 from '/data1/pgsql_data/Election_CTR_North_East/SAL_NOV_2022_CTR_DUMP/ARFACC.csv' delimiter ',' csv header
+
+\copy north_east.inp_2 from '/data1/pgsql_data/Election_CTR_North_East/SAL_NOV_2022_CTR_DUMP/ARFINP.csv' delimiter ',' csv header
+
+\copy north_east.lpe_2 from '/data1/pgsql_data/Election_CTR_North_East/SAL_NOV_2022_CTR_DUMP/ARFLPE.csv' delimiter ',' csv header
+
+\copy north_east.report_2 from '/data1/pgsql_data/Election_CTR_North_East/SAL_NOV_2022_CTR_DUMP/ARFREPORT.csv' delimiter ',' csv header
+
+
+\copy north_east.trans_2 from '/data1/pgsql_data/Election_CTR_North_East/SAL_NOV_2022_CTR_DUMP/ARFTRN.csv' delimiter ',' csv header
+
+
+\copy north_east.batch_oct from '/data1/pgsql_data/Election_CTR_North_East/SAL_OCT_CTR_DUMP/ARF_BATCH.csv' delimiter ',' csv header
+
+\copy north_east.branch_oct from '/data1/pgsql_data/Election_CTR_North_East/SAL_OCT_CTR_DUMP/ARFBRC.csv' delimiter ',' csv header
+
+\copy north_east.acc_oct from '/data1/pgsql_data/Election_CTR_North_East/SAL_OCT_CTR_DUMP/ARFACC.csv' delimiter ',' csv header
+
+\copy north_east.inp_oct from '/data1/pgsql_data/Election_CTR_North_East/SAL_OCT_CTR_DUMP/ARFINP.csv' delimiter ',' csv header
+
+\copy north_east.lpe_oct from '/data1/pgsql_data/Election_CTR_North_East/SAL_OCT_CTR_DUMP/ARFLPE.csv' delimiter ',' csv header
+
+\copy north_east.report_oct from '/data1/pgsql_data/Election_CTR_North_East/SAL_OCT_CTR_DUMP/ARF_REPORT.csv' delimiter ',' csv header
+
+
+\copy risk_priority.batch_1 from '/data1/pgsql_data/Data/Fy20-21/batch.csv' delimiter ',' csv header
+
+
+\copy risk_priority.acc_1 from '/data1/pgsql_data/Data/Fy20-21/arfacc.csv' delimiter ',' csv header
+
+risk_priority.report_1
+
+
+\copy risk_priority.report_1 from '/data1/pgsql_data/Data/Fy20-21/report.csv' delimiter ',' csv header
+
+
+risk_priority.arftrn_1
+
+risk_priority.inp_1
+
+\copy risk_priority.arftrn_1 from '/data1/pgsql_data/Data/Fy20-21/arftrn.csv' delimiter ',' csv header
+
+risk_priority.lpe_1
+
+\copy risk_priority.inp_1 from '/data1/pgsql_data/Data/Fy20-21/arfinp.csv' delimiter ',' csv header
+
+\copy risk_priority.lpe_1 from '/data1/pgsql_data/Data/Fy20-21/arflpe.csv' delimiter ',' csv header
+
+
+risk_priority.trftrn_1
+risk_priority.batch_june
+
+risk_priority.report_june
+
+risk_priority.inp_june
+
+risk_priority.batch_nov
+
+
+/data1/pgsql_data/Data/STR_remaining/SAL_STR_SEP2022
+
+/data1/pgsql_data/Data/STR_remaining/SAL_STR_AUG2022
+
+\copy risk_priority.batch_july from '/data1/pgsql_data/Data/STR_remaining/June_July_STR_Dump/BATCH.csv' delimiter ',' csv header
+
+\copy risk_priority.report_june from '/data1/pgsql_data/Data/STR_remaining/SAL_STR_JUN2022/REPORT.csv' delimiter ',' csv header
+
+
+\copy risk_priority.inp_june from '/data1/pgsql_data/Data/STR_remaining/SAL_STR_JUN2022/ARFINP.csv' delimiter ',' csv header
+
+\copy risk_priority.batch_august from '/data1/pgsql_data/Data/STR_remaining/SAL_STR_AUG2022/BATCH.csv' delimiter ',' csv header
+
+
+/data1/pgsql_data/Data/STR_remaining/SAL_STR_SEP2022
+
+\copy risk_priority.batch_dec from '/data1/pgsql_data/Data/STR_remaining/SAL_STR_DEC2022/ARFBATCH.csv' delimiter ',' csv header
+
+\copy rfi_study.acc from '/data1/pgsql_data/nbfc_arfacc_str_for_mcadirectors.csv' delimiter ',' csv header
+
+/data1/pgsql_data/SAL_SEP_2022
+
+\copy north_east.branch_sept from '/data1/pgsql_data/SAL_SEP_2022/ARFBRC.csv' delimiter ',' csv header
+
+/data1/pgsql_data/Election_CTR_North_East/SAL_DEC 22_CTR_DUMP/
+
+
+\copy north_east.batch_oct from '/data1/pgsql_data/Election_CTR_North_East/SAL_OCT_CTR_DUMP/ARF_BATCH.csv' delimiter ',' csv header
+
+\copy north_east.branch_oct from '/data1/pgsql_data/Election_CTR_North_East/SAL_OCT_CTR_DUMP/ARFBRC.csv' delimiter ',' csv header
+
+\copy north_east.acc_oct from '/data1/pgsql_data/Election_CTR_North_East/SAL_OCT_CTR_DUMP/ARFACC.csv' delimiter ',' csv header
+
+\copy north_east.inp_oct from '/data1/pgsql_data/Election_CTR_North_East/SAL_OCT_CTR_DUMP/ARFINP.csv' delimiter ',' csv header
+
+\copy north_east.lpe_oct from '/data1/pgsql_data/Election_CTR_North_East/SAL_OCT_CTR_DUMP/ARFLPE.csv' delimiter ',' csv header
+
+\copy north_east.report_oct from '/data1/pgsql_data/Election_CTR_North_East/SAL_OCT_CTR_DUMP/ARF_REPORT.csv' delimiter ',' csv header
+
+\copy north_east.trans_oct from '/data1/pgsql_data/Election_CTR_North_East/SAL_OCT_CTR_DUMP/ARFTRN.csv' delimiter ',' csv header
+
+
+
+
+
+
+
+
+trans_2
+fiu_standerd_sept2022.csv
+
+\copy fiureid_master_sept2022 from '/data1/pgsql_data/Election_CTR_Data_Files/SAL_JUN_JUL_AUG_2022/fiu_standerd_sept2022.csv' delimiter ',' csv header
+
+
+
+\copy state_master from '/data1/pgsql_data/Election_CTR_Data_Files/SAL_JUN_JUL_AUG_2022/state_master.csv' delimiter ',' csv header
+
+
+\copy district_master from '/data1/pgsql_data/Election_CTR_Data_Files/SAL_JUN_JUL_AUG_2022/district_master.csv' delimiter ',' csv header
+
+
+
+
+\copy acc_type_master_name from '/data1/pgsql_data/Election_CTR_Data_Files/SAL_JUN_JUL_AUG_2022/acc_type_master_name.csv' delimiter ',' csv header
+
+
+acc_holdertype_master_name.csv
+
+\copy str_prioritization.lpe_2 from '/data1/pgsql_data/FY20_21and21_22_STR_DUMP/FY21_22_ARFLPE.csv' delimiter ',' csv header
+
+\copy str_prioritization.batch from '/data1/pgsql_data/FY20_21and21_22_STR_DUMP/BATCH_FY20_21and21_22.csv' delimiter ',' csv header
+
+
+transactionmode_master_name.csv
+
+\copy transactionmode_master_name from '/data1/pgsql_data/Election_CTR_Data_Files/SAL_JUN_JUL_AUG_2022/transactionmode_master_name.csv' delimiter ',' csv header
+
+
+
+
+
+
+\copy gj_hp.batch_sept from '/data1/pgsql_data/SAL_SEP_2022/BATCH.csv' delimiter ',' csv header
+\copy gj_hp.report_sept from '/data1/pgsql_data/SAL_SEP_2022/REPORT.csv' delimiter ',' csv header
+\copy gj_hp.branch_sept from '/data1/pgsql_data/SAL_SEP_2022/ARFBRC.csv' delimiter ',' csv header
+\copy gj_hp.acc_sept from '/data1/pgsql_data/SAL_SEP_2022/ARFACC.csv' delimiter ',' csv header
+\copy gj_hp.trans_sept from '/data1/pgsql_data/SAL_SEP_2022/ARFTRN.csv' delimiter ',' csv header
