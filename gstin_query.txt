@@ -1,0 +1,69 @@
+
+Point-1
+select distinct 'm-'||gst_mob_num,count(gstin_id) from gstinrajatji.rajat_ji_data
+	group by gst_mob_num
+	having count(gstin_id)>400
+	order by count(gstin_id) desc
+
+----------------------------------
+Point-2
+select distinct state_desc, count(distinct gstin_id),sum(tover)tover, sum(itc_passed)itc_passed,
+		count(distinct gstin_id ) filter (where gst_auth_status_sc='A') active,
+		count(distinct gstin_id ) filter (where gst_auth_status_sc!='A') inactive
+		count(distinct gstin_id ) filter (where appr_auth='CENTER') Central_jud,
+		count(distinct gstin_id ) filter (where appr_auth ='STATE') State_jud
+		from gstinrajatji.rajat_ji_data
+		group by state_desc
+---------------------------------
+
+Point-3
+select distinct 'm-'||gst_mob_num,count(distinct state_desc), count(distinct gstin_id),sum(tover)tover, sum(itc_passed)itc_passed,
+		count(distinct gstin_id ) filter (where gst_auth_status_sc='A') active,
+		count(distinct gstin_id ) filter (where gst_auth_status_sc!='A') inactive
+		--count(distinct gstin_id ) filter (where appr_auth='CENTER') Central_jud,
+		--count(distinct gstin_id ) filter (where appr_auth ='STATE') State_jud
+		from gstinrajatji.rajat_ji_data
+		group by 'm-'||gst_mob_num
+--------------------------------------------
+Point-4
+select distinct 'm-'||gst_email_id,count(distinct state_desc), count(distinct gstin_id),sum(tover)tover, sum(itc_passed)itc_passed,
+		count(distinct gstin_id ) filter (where gst_auth_status_sc='A') active,
+		count(distinct gstin_id ) filter (where gst_auth_status_sc!='A') inactive
+		--count(distinct gstin_id ) filter (where appr_auth='CENTER') Central_jud,
+--count(distinct gstin_id ) filter (where appr_auth ='STATE') State_jud
+		from gstinrajatji.rajat_ji_data
+		group by 'm-'||gst_email_id
+
+---------------------------------------
+Point-5 
+
+
+select substring(gstin_id,6,1)pan ,count(distinct gstin_id),
+		count(distinct gstin_id ) filter (where gst_auth_status_sc='A') active,
+		count(distinct gstin_id ) filter (where gst_auth_status_sc!='A') inactive,
+		--count(distinct appr_auth ) filter (where gst_auth_status_sc!='A') Central_jud,
+--count(distinct appr_auth ) filter (where gst_auth_status_sc!='A') State_jud
+
+		from gstinrajatji.rajat_ji_data
+		group by substring(gstin_id,6,1)
+
+------------------------------------------------
+
+Point-6
+select count(distinct substring(gstin_id,3,10)) from gstinrajatji.rajat_ji_data  
+		where substring(gstin_id,6,1)!= '0'
+
+----------------------------------------------------------
+
+Point-7
+
+select substring(reg_start_dt,1,4) ,count(distinct gstin_id),
+		count(distinct gstin_id ) filter (where gst_auth_status_sc='A') active,
+		count(distinct gstin_id ) filter (where gst_auth_status_sc!='A') inactive
+		--count(distinct appr_auth ) filter (where gst_auth_status_sc!='A') Central_jud,
+--count(distinct appr_auth ) filter (where gst_auth_status_sc!='A') State_jud
+		
+	
+		from gstinrajatji.rajat_ji_data
+		group by substring(reg_start_dt,1,4)
+

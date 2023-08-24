@@ -1,0 +1,20 @@
+for chunk in tqdm(list(chunks(pan,500))):
+    #pans = remove_list_brackets(chunk)
+    #print(chunk)
+    engine=sqlalchemy.create_engine('mssql+pyodbc://SAL_USR:%s@172.16.20.46:1433/HDM_DB?driver=ODBC+Driver+17+for+SQL+Server' % quote('HDM@123_'))
+    chunk=["'"+p+"'" for p in chunk]
+    pans=",".join(chunk)
+    #print(pans)
+    sql ='''with cte1 as
+(
+select batchid,rptsernum,upper(trim(pan)) pan,COMMSTATECODE statecode from [FINCORE_BACKUP_CC].[ARFINP] where upper(trim(pan)) in ({}) and batchid between 1804010000 and 2303319999
+union
+select batchid,rptsernum,upper(trim(pan)) pan,COMMSTATECODE statecode from [FINCORE_BACKUP_CC].[ARFLPE] where upper(trim(pan)) in ({}) and batchid between 1804010000 and 2303319999
+union
+select batchid,rptsernum,upper(trim(pan)) pan,statecode from [FINCORE_BACKUP_CC].[TRFTRN] where upper(trim(pan)) in ({}) and batchid between 1804010000 and 2303319999
+)
+select b.reporttype ,c1.* from  cte1 c1 inner join [FINCORE_BACKUP_CC].[BATCH] b on
+c1.batchid=b.batchid and b.batchtype!='D' where  b.batchid not in(select originalbatchid from [FINCORE_BACKUP_CC].[BATCH])'''.format(pans,pans,pans)
+    #print(sql)
+    results = pd.read_sql(sql,engine)
+    results.to_csv("C:\\Users\\SAL\\pan_state_1_2006.csv",index=False,mode='a',header= not os.path.exists("C:\\Users\\SAL\\pan_state_1_2006.csv")) 
