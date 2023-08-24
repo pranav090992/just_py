@@ -317,6 +317,273 @@ or upper(r.detailsofinvestigations) like ('%ONLINE%') and (upper(r.detailsofinve
 ="('"&A1&"',"&"'"&B1&"'),"
 
 ---------------------------------------------------
+--NTO get batchid,rptsernum to be excluded from isolated
+
+with cte1 as (select batchid,fiureid from [FINCORE_BACKUP_CC].[BATCH] where batchid between 1804010000 and 2303319999 and reporttype='STR' and batchtype<>'D' and batchid not in (select distinct originalbatchid from [FINCORE_BACKUP_CC].[BATCH])), --where batchid between 1804010000 and 2303319999)),
+cte2 as (select batchid, rptsernum, trim(accountnum) accountnum, pan, cast(mobile as nvarchar) mobile,commstatecode,COMMADDRESS,'LPE'source from [FINCORE_BACKUP_CC].[ARFLPE]
+where batchid in (select batchid from cte1) and upper(trim(pan)) in ('AAATD3881E', 'AAATS5184K')--, 'AALTS5161R', 'AADAS4869H', 'AAJTS3806K', 'AAIAS3783R', 'AAATU6921G', 'AAGTS2593E', 'AAATC4867F', 'AAAAF1372R', 'AAIAS4518A', 'AAATE2055K', 'AAATD7543D', 'AAAAG0964E', 'AABTS8541B', 'AACCK6130C', 'AAATC5776B', 'AADAK1185C', 'AAATC2438G', 'AAFTS7171P', 'AAATB0854D', 'AABTT7334F', 'AAAAB3958P', 'AAAAH4507Q', 'AAATP5171B', 'AAATG5732D', 'AACAA8472D', 'AAIAS7359B', 'AAATD5514G', 'AAKTS6969A', 'AAJTS8558G', 'AAYAS2537F', 'AAAAE7494B', 'AAATH3891G', 'AAATU4109N', 'AAAJS3102M', 'AADAS4239B', 'AAMTS6717Q', 'AAFHJ0674L', 'AACTS8355A', 'AAATP5334N', 'AAATS3298N', 'AABTA3080D', 'AAATD0888R', 'AABTS3650F', 'AAATM5634J', 'AABTB5167C', 'AABTM0579P', 'AACTM3004C', 'AAAJS2345E', 'AAEAS3959D', 'AAEFH5066R', 'AAATB6483A', 'AAATS5369L', 'AAAAT4247P', 'AAAAO0921F', 'AAATW1190P', 'AACAB8592M', 'AAAJV0477C', 'AAATA5812E', 'AABTM0360Q', 'AAAAC1386N', 'AAGTS6594R', 'AAATR0784L', 'AAAAR7024C', 'AAATM8597L', 'AAJFA4492K', 'AAATT8903H', 'AAATD2130J', 'AAAAM3254B', 'AADTS1949R', 'AABAA1932D', 'AAABS1592B', 'AAQAS2495G', 'AADTS3991B', 'AAHTS1144A', 'AABTD2055R', 'AAAAA0873A', 'AAAAP2191G', 'AAAJP1130G', 'AAATC9291M', 'AAATD5608F', 'AAATB5292R', 'AAATB8340A')
+union
+select batchid, rptsernum, trim(accountnum) accountnum, pan,cast(mobile as nvarchar) mobile,commstatecode,COMMADDRESS,'INP'source from [FINCORE_BACKUP_CC].[ARFINP]
+where batchid in (select batchid from cte1) and upper(trim(pan)) in  ('AAATD3881E', 'AAATS5184K')),--, 'AALTS5161R', 'AADAS4869H', 'AAJTS3806K', 'AAIAS3783R', 'AAATU6921G', 'AAGTS2593E', 'AAATC4867F', 'AAAAF1372R', 'AAIAS4518A', 'AAATE2055K', 'AAATD7543D', 'AAAAG0964E', 'AABTS8541B', 'AACCK6130C', 'AAATC5776B', 'AADAK1185C', 'AAATC2438G', 'AAFTS7171P', 'AAATB0854D', 'AABTT7334F', 'AAAAB3958P', 'AAAAH4507Q', 'AAATP5171B', 'AAATG5732D', 'AACAA8472D', 'AAIAS7359B', 'AAATD5514G', 'AAKTS6969A', 'AAJTS8558G', 'AAYAS2537F', 'AAAAE7494B', 'AAATH3891G', 'AAATU4109N', 'AAAJS3102M', 'AADAS4239B', 'AAMTS6717Q', 'AAFHJ0674L', 'AACTS8355A', 'AAATP5334N', 'AAATS3298N', 'AABTA3080D', 'AAATD0888R', 'AABTS3650F', 'AAATM5634J', 'AABTB5167C', 'AABTM0579P', 'AACTM3004C', 'AAAJS2345E', 'AAEAS3959D', 'AAEFH5066R', 'AAATB6483A', 'AAATS5369L', 'AAAAT4247P', 'AAAAO0921F', 'AAATW1190P', 'AACAB8592M', 'AAAJV0477C', 'AAATA5812E', 'AABTM0360Q', 'AAAAC1386N', 'AAGTS6594R', 'AAATR0784L', 'AAAAR7024C', 'AAATM8597L', 'AAJFA4492K', 'AAATT8903H', 'AAATD2130J', 'AAAAM3254B', 'AADTS1949R', 'AABAA1932D', 'AAABS1592B', 'AAQAS2495G', 'AADTS3991B', 'AAHTS1144A', 'AABTD2055R', 'AAAAA0873A', 'AAAAP2191G', 'AAAJP1130G', 'AAATC9291M', 'AAATD5608F', 'AAATB5292R', 'AAATB8340A')),
+
+cte3 as (select pan, batchid, rptsernum, accountnum,sum(case when debitcredit='C' then amount end)credit_amount,sum(case when debitcredit='D' then amount end)debit_amount from(
+select pan, t.batchid,t.rptsernum,trim(t.accountnum)accountnum,debitcredit,amount from [FINCORE_BACKUP_CC].[ARFTRN] t inner join (select distinct pan, batchid, rptsernum,trim(accountnum)accountnum from cte2) i
+on t.batchid=i.batchid and t.rptsernum=i.rptsernum and trim(t.accountnum)=trim(i.accountnum))z
+group by pan, batchid, rptsernum, accountnum),
+
+cte9 as (select pan,batchid,rptsernum,accountnum,sum(case when [TRANSACTIONTYPE]='R' then [AMOUNTRUPEES] end)credit_amount,sum(case when [TRANSACTIONTYPE]='P' then [AMOUNTRUPEES] end)debit_amount from(
+select t.pan, t.batchid,t.rptsernum,trim(t.accountnum)accountnum,[TRANSACTIONTYPE],[AMOUNTRUPEES] from [FINCORE_BACKUP_CC].[TRFTRN] t inner join (select distinct pan, batchid, rptsernum,trim(accountnum)accountnum from cte2) i
+on t.batchid=i.batchid and t.rptsernum=i.rptsernum and trim(t.accountnum)=trim(i.accountnum))z
+group by pan, batchid, rptsernum, accountnum),
+
+cte10 as ( select * from (select  pan, batchid, rptsernum, accountnum,credit_amount, debit_amount from cte3 union 
+select pan,batchid,rptsernum,accountnum,credit_amount, debit_amount from cte9 )a)
+
+select * from cte10
+
+--cte4 as (select pan, count(distinct concat(batchid,rptsernum))countt, sum(credit_amount)credit_amount, sum(debit_amount)debit_amount from cte10 group by pan), 
+--cte5 as ( select pan, b.batchid, b.rptsernum, trim(b.accountnum)accountnum,statecode, [ADDRESS]from [FINCORE_BACKUP_CC].[ARFBRC] b inner join 
+--(select distinct pan, batchid, rptsernum,trim(accountnum)accountnum from cte2) i on b.batchid=i.batchid and b.rptsernum=i.rptsernum and trim(b.accountnum)=trim(i.accountnum)),
+--cte6 as (select pan,commstatecode, commaddress,source from(select pan, batchid, commstatecode, commaddress, source, row_number() over(partition by pan order by batchid desc ) roww  from cte2 
+--		where commstatecode is not null and commstatecode not in ('XX','ZZ'))z where roww=1),
+--cte7 as (select pan,concat('M-',mobile) mobile from(select pan,batchid,mobile, row_number() over(partition by pan order by batchid desc) roww  from cte2 where mobile is not null and mobile <>'' and mobile <>'0')z where roww=1),
+--cte8 as ( select pan,statecode, address as br_add from(select pan,batchid, statecode, address,row_number() over(partition by pan order by batchid desc ) roww from cte5
+--		where statecode is not null and statecode not in ('XX','ZZ'))z where roww=1)
+	
+--select cte4.pan,countt,credit_amount,debit_amount,commstatecode, commaddress,source, mobile, statecode, br_add from cte4
+--left join  cte6 on cte4.pan=cte6.pan
+--left join  cte7 on cte4.pan=cte7.pan
+--left join  cte8 on cte4.pan=cte8.pan
+
+------------------------------------------------------------------
+
+NTO get PAN based result after removing isolated reports
+
+with cte1 as (select batchid,
+ CASE  
+        WHEN batchid between 1804010000 and 1903319999 then 'FY 2018-19' 
+		WHEN batchid between 1904010000 and 2003319999 then 'FY 2019-20' 
+		WHEN batchid between 2004010000 and 2103319999 then 'FY 2020-21' 
+		WHEN batchid between 2104010000 and 2203319999 then 'FY 2021-22' 
+		WHEN batchid between 2204010000 and 2303319999 then 'FY 2022-23' 
+		 end fy ,
+fiureid from [FINCORE_BACKUP_CC].[BATCH] where batchid between 1804010000 and 2303319999 and reporttype='STR' and batchtype<>'D' and batchid not in (select distinct originalbatchid from [FINCORE_BACKUP_CC].[BATCH])
+),
+
+cte11 as (select batchid,fy from cte1),
+
+
+
+cte2 as (select batchid, rptsernum, trim(accountnum) accountnum, pan, cast(mobile as nvarchar) mobile,commstatecode,COMMADDRESS,'LPE'source from [FINCORE_BACKUP_CC].[ARFLPE]
+where 
+batchid in (select batchid from cte1) and
+concat(cast(batchid as nvarchar),cast(rptsernum as nvarchar)) not in ()
+and upper(trim(pan)) in ()
+union
+select batchid, rptsernum, trim(accountnum) accountnum, pan,cast(mobile as nvarchar) mobile,commstatecode,COMMADDRESS,'INP'source from [FINCORE_BACKUP_CC].[ARFINP]
+where batchid in (select batchid from cte1) and 
+concat(cast(batchid as nvarchar),cast(rptsernum as nvarchar)) not in ()
+and upper(trim(pan)) in  ()),
+
+cte12 as(select bb.batchid, fy,rptsernum, accountnum, pan,mobile,commstatecode,COMMADDRESS,source from cte2 aa join cte11 bb on aa.batchid=bb.batchid),
+
+
+
+cte3 as (select pan, batchid, rptsernum,fy, accountnum,sum(case when debitcredit='C' then amount end)credit_amount,sum(case when debitcredit='D' then amount end)debit_amount from(
+select pan, t.batchid,t.rptsernum,fy,trim(t.accountnum)accountnum,debitcredit,amount from [FINCORE_BACKUP_CC].[ARFTRN] t inner join (select distinct pan, batchid, rptsernum,fy,trim(accountnum)accountnum from cte12) i
+on t.batchid=i.batchid and t.rptsernum=i.rptsernum and trim(t.accountnum)=trim(i.accountnum))z
+group by pan, batchid, rptsernum, fy,accountnum),
+
+cte9 as (select pan,batchid,rptsernum,fy,accountnum,sum(case when [TRANSACTIONTYPE]='R' then [AMOUNTRUPEES] end)credit_amount,sum(case when [TRANSACTIONTYPE]='P' then [AMOUNTRUPEES] end)debit_amount from(
+select t.pan, t.batchid,t.rptsernum,fy,trim(t.accountnum)accountnum,[TRANSACTIONTYPE],[AMOUNTRUPEES] from [FINCORE_BACKUP_CC].[TRFTRN] t inner join (select distinct pan, batchid, rptsernum,fy,trim(accountnum)accountnum from cte12) i
+on t.batchid=i.batchid and t.rptsernum=i.rptsernum and trim(t.accountnum)=trim(i.accountnum))z
+group by pan, batchid, rptsernum, fy,accountnum),
+
+cte10 as ( select pan, batchid, rptsernum, fy,accountnum,credit_amount, debit_amount  from (select  pan, batchid, rptsernum,fy, accountnum,credit_amount, debit_amount from cte3 union 
+select pan,batchid,rptsernum,fy,accountnum,credit_amount, debit_amount from cte9 )a),
+
+
+
+cte4 as (select pan, count(distinct concat(batchid,rptsernum))countt, fy,
+sum(credit_amount)credit_amount, sum(debit_amount)debit_amount from cte10 group by pan, fy), 
+cte5 as ( select pan, b.batchid, b.rptsernum,fy, trim(b.accountnum)accountnum,statecode, [ADDRESS]from [FINCORE_BACKUP_CC].[ARFBRC] b inner join 
+(select distinct pan, batchid, rptsernum,fy,trim(accountnum)accountnum from cte12) i on b.batchid=i.batchid and b.rptsernum=i.rptsernum and trim(b.accountnum)=trim(i.accountnum)),
+cte6 as (select pan,fy,commstatecode, commaddress,source from(select pan, batchid, fy, commstatecode, commaddress, source, row_number() over(partition by pan order by batchid desc ) roww  from cte12 
+		where commstatecode is not null and commstatecode not in ('XX','ZZ'))z where roww=1),
+cte7 as (select pan,concat('M-',mobile) mobile from(select pan,batchid,mobile,fy, row_number() over(partition by pan order by batchid desc) roww  from cte12 where mobile is not null and mobile <>'' and mobile <>'0')z where roww=1),
+cte8 as ( select pan,fy,statecode, address as br_add from(select pan,batchid, statecode,fy, address,row_number() over(partition by pan order by batchid desc ) roww from cte5
+		where statecode is not null and statecode not in ('XX','ZZ'))z where roww=1)
+	
+select cte4.pan,cte4.fy,countt,credit_amount,debit_amount,commstatecode, commaddress,source, mobile, statecode, br_add from cte4
+left join  cte6 on cte4.pan=cte6.pan
+left join  cte7 on cte4.pan=cte7.pan
+left join  cte8 on cte4.pan=cte8.pan
+
+----------------------------------------------------------------------
+with batch_data as(select distinct batchid from risk_priority.batch_res where reporttype='STR' and batchid between 2104010000 and 2303319999 and  batchtype<>'D' and batchid not in (select distinct originalbatchid from risk_priority.batch_res)
+union 
+select distinct batchid from str_prioritization2.batch_res_final where reporttype='STR' and  batchid between 2104010000 and 2303319999 and batchtype<>'D' and batchid not in (select distinct originalbatchid from str_prioritization2.batch_res_final)),
+
+report_data as(
+SELECT batchid,rptsernum
+	FROM risk_priority.report_5_years where batchid in(select * from batch_data)
+union    
+SELECT batchid,rptsernum
+	FROM str_prioritization2.report_res_final where batchid in(select * from batch_data)),
+
+non_iso_str as(select batchid,rptsernum from report_data where (batchid,rptsernum) not in (select batchid,reportserialnum from risk_priority.isolated_str_1804_2212)),
+    
+inp_lpe_trf_data as(
+select distinct pan_clean as pan,batchid,rptsernum,personname,'INP' as sources from risk_priority.inp_res where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')
+union 
+select distinct pan,batchid,rptsernum,personname,'INP' as sources from str_prioritization2.arfinp_0123_0323 where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')
+union
+select distinct pan_clean as pan,batchid,rptsernum,personname,'LPE' as sources from risk_priority.lpe_res where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')
+union
+select distinct pan as pan,batchid,rptsernum,personname,'LPE' as sources from str_prioritization2.arflpe_0123_0323 where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')
+union
+select distinct pan as pan,batchid,rptsernum,customername as personname,'TRN' as sources from str_prioritization2.trftrn_0123_0323 where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')
+union
+select distinct pan as pan,batchid,rptsernum,customername as personname,'TRN' as sources from str_prioritization2.trftrn_0422_1222 where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')
+union
+select distinct pan as pan,batchid,rptsernum,customername as personname,'TRN' as sources from risk_priority.trftrn_21_22 where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')              
+)
+
+select * from inp_lpe_trf_data
+----------------------------------------------------------------------
+
+with cte0 as (select distinct batchid, fiureid, ENTITYNAME  from [FINCORE_BACKUP_CC].[BATCH]  where batchid between 1804010000 and 2303319999 and batchtype<>'D'  and fiureid='ZZZZZ00052' and reporttype='STR' and batchid not in 
+(select distinct originalbatchid from [FINCORE_BACKUP_CC].[BATCH])),
+
+cte1 as(select distinct batchid,rptsernum,[SOURCEOFALERT],MAINPERSONNAME  from [FINCORE_BACKUP_CC].[REPORT]  where upper([SOURCEOFALERT]) != 'CV'  and  batchid in (select distinct batchid from cte0)),
+
+cte2 as (select  distinct l.batchid, l.rptsernum,concat(cast(l.batchid as nvarchar),'||',cast(l.rptsernum as nvarchar)) brn,constitutiontype,
+CASE  
+        WHEN l.batchid between 1804010000 and 1903319999 then 'FY 2018-19' 
+		WHEN l.batchid between 1904010000 and 2003319999 then 'FY 2019-20' 
+		WHEN l.batchid between 2004010000 and 2103319999 then 'FY 2020-21' 
+		WHEN l.batchid between 2104010000 and 2203319999 then 'FY 2021-22' 
+		WHEN l.batchid between 2204010000 and 2303319999 then 'FY 2022-23' 
+		 end financial_year,  
+		 trim(PERSONNAME) PERSONNAME  from [FINCORE_BACKUP_CC].[ARFLPE] l join cte1 c on c.batchid=l.batchid and c.rptsernum=l.rptsernum 
+and constitutiontype in ('D','E','J','H','F')) 
+
+
+select c.batchid, c.rptsernum, brn, constitutiontype,financial_year,personname,alertindicator from cte2 c join [HDM_DB].[FINCORE_BACKUP_CC].[ALERTINDICATOR] a on c.batchid=a.batchid and c.rptsernum= a.rptsernum and 
+
+upper([ALERTINDICATOR])  LIKE '%ADVERSE%CRIMINAL%'
+
+upper([ALERTINDICATOR])  LIKE '%CUSTOMER%OPEN%'
+ (upper([ALERTINDICATOR])  LIKE '%CUSTOMER LEFT%' OR
+upper([ALERTINDICATOR])  LIKE '%BENEFICIAL OWNER%' OR
+upper([ALERTINDICATOR])  LIKE '%FORGED IDENTIFICATION%' OR
+upper([ALERTINDICATOR])  LIKE '%ADDRESS FOUND%' OR
+upper([ALERTINDICATOR])  LIKE '%MULTIUPLE ACCOUNTS%' OR
+upper([ALERTINDICATOR])  LIKE '%CRIMINAL OFFENCE%' OR
+upper([ALERTINDICATOR])  LIKE '%TF OFFENCE%' OR
+upper([ALERTINDICATOR])  LIKE '%CRIMINAL%' OR
+upper([ALERTINDICATOR])  LIKE '%TERRORIST ACTIVITIES%' OR
+upper([ALERTINDICATOR])  LIKE '%TERRORIST ACTIVITIES%' OR 
+upper([ALERTINDICATOR])  LIKE '%COMPLETE TRANSACTION%' OR
+upper([ALERTINDICATOR])  LIKE '%OVER CAUTIOUS%' OR
+upper([ALERTINDICATOR])  LIKE '%CUSTOMER AVOIDING%' OR
+upper([ALERTINDICATOR])  LIKE '%INCONSISTENT INFORMATION%' OR
+upper([ALERTINDICATOR])  LIKE '%CUSTOMER PROVIDES%' OR
+upper([ALERTINDICATOR])  LIKE '%CUSTOMER ACTING%' OR
+upper([ALERTINDICATOR])  LIKE '%MULTIPLE CUSTOMERS%' OR
+upper([ALERTINDICATOR])  LIKE '%AVOID REPORTING%' OR
+upper([ALERTINDICATOR])  LIKE '%SOURCE OF FUND%'OR
+upper([ALERTINDICATOR])  LIKE '%COMPLAINT RECEIVED%' OR
+upper([ALERTINDICATOR])  LIKE '%OTHER AGENTS%' OR
+upper([ALERTINDICATOR])  LIKE '%FACILITY AGAINST FDR%' OR
+upper([ALERTINDICATOR])  LIKE '%AVOID LINKAGE%' OR
+upper([ALERTINDICATOR])  LIKE '%MULTIPLE CUSTOMERS%' OR
+upper([ALERTINDICATOR])  LIKE '%BUSINESS OUT OF RESIDENTIAL%' OR
+upper([ALERTINDICATOR])  LIKE '%FREQUENT LOCKER%' OR
+upper([ALERTINDICATOR])  LIKE '%PARTY UNDER SUSPICIUOUS CIRCUMSTANCES%' OR
+upper([ALERTINDICATOR])  LIKE '%CV 2.1%'OR
+upper([ALERTINDICATOR])  LIKE '%CV 1.1%'OR
+  
+upper([ALERTINDICATOR])  like '%CV 3.1%'or
+upper([ALERTINDICATOR])  like '%CV 4.1%'or
+upper([ALERTINDICATOR])  like '%CV 4.2%'or
+upper([ALERTINDICATOR])  like '%LQ 1.1%'or
+upper([ALERTINDICATOR])  like '%LQ 2.1%'or
+upper([ALERTINDICATOR])  like '%MR 1.1%'or
+upper([ALERTINDICATOR])  like '%MR 2.1%'or
+upper([ALERTINDICATOR])  like '%EL 1.1%'or
+upper([ALERTINDICATOR])  like '%EL 2.1%'or
+upper([ALERTINDICATOR])  like '%EL 2.2%'or
+upper([ALERTINDICATOR])  like '%EL 3.1%'or
+upper([ALERTINDICATOR])  like '%EL 3.2%'or
+upper([ALERTINDICATOR])  like '%EL 4.1%'or
+upper([ALERTINDICATOR])  like '%EL 4.2%'or
+upper([ALERTINDICATOR])  like '%EL 4.3%'or
+upper([ALERTINDICATOR])  like '%PC 1.1%'or
+upper([ALERTINDICATOR])  like '%BA 1.2%'or
+upper([ALERTINDICATOR])  like '%TY 6.2%'or
+upper([ALERTINDICATOR])  like '%TY 12.1%'or
+upper([ALERTINDICATOR])  like '%TY 12.2%'or
+upper([ALERTINDICATOR])  like '%TY 10.28%'or
+upper([ALERTINDICATOR])  like '%EL 6.1%'or
+upper([ALERTINDICATOR])  like '%RM 5.5%' or
+upper([ALERTINDICATOR])  like '%CV3.1%'or
+upper([ALERTINDICATOR])  like '%CV4.1%'or
+upper([ALERTINDICATOR])  like '%CV4.2%'or
+upper([ALERTINDICATOR])  like '%LQ1.1%'or
+upper([ALERTINDICATOR])  like '%LQ2.1%'or
+upper([ALERTINDICATOR])  like '%MR1.1%'or
+upper([ALERTINDICATOR])  like '%MR2.1%'or
+upper([ALERTINDICATOR])  like '%EL1.1%'or
+upper([ALERTINDICATOR])  like '%EL2.1%'or
+upper([ALERTINDICATOR])  like '%EL2.2%'or
+upper([ALERTINDICATOR])  like '%EL3.1%'or
+upper([ALERTINDICATOR])  like '%EL4.1%'or
+upper([ALERTINDICATOR])  like '%EL4.2%'or
+upper([ALERTINDICATOR])  like '%EL4.3%'or
+upper([ALERTINDICATOR])  like '%PC1.1%'or
+upper([ALERTINDICATOR])  like '%BA1.2%'or
+upper([ALERTINDICATOR])  like '%TY6.2%'or
+upper([ALERTINDICATOR])  like '%TY12.1%'or
+upper([ALERTINDICATOR])  like '%TY12.2%'or
+upper([ALERTINDICATOR])  like '%TY10.28%'or
+upper([ALERTINDICATOR])  like '%EL6.1%'or
+upper([ALERTINDICATOR])  like '%RM5.5%')
+
+---------------------------------------------------------------------
+
+with batch_data as(select distinct batchid from risk_priority.batch_res where reporttype='STR' and batchid between 2104010000 and 2303319999 and  batchtype<>'D' and batchid not in (select distinct originalbatchid from risk_priority.batch_res)
+union 
+select distinct batchid from str_prioritization2.batch_res_final where reporttype='STR' and  batchid between 2104010000 and 2303319999 and batchtype<>'D' and batchid not in (select distinct originalbatchid from str_prioritization2.batch_res_final)),
+
+report_data as(
+SELECT batchid,rptsernum
+	FROM risk_priority.report_5_years where batchid in(select * from batch_data)
+union    
+SELECT batchid,rptsernum
+	FROM str_prioritization2.report_res_final where batchid in(select * from batch_data)),
+
+non_iso_str as(select batchid,rptsernum from report_data where (batchid,rptsernum) not in (select batchid,reportserialnum from risk_priority.isolated_str_1804_2212)),
+    
+inp_lpe_trf_data as(
+select distinct pan_clean as pan,batchid,rptsernum,personname,'INP' as sources from risk_priority.inp_res where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')
+union 
+select distinct pan,batchid,rptsernum,personname,'INP' as sources from str_prioritization2.arfinp_0123_0323 where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')
+union
+select distinct pan_clean as pan,batchid,rptsernum,personname,'LPE' as sources from risk_priority.lpe_res where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')
+union
+select distinct pan as pan,batchid,rptsernum,personname,'LPE' as sources from str_prioritization2.arflpe_0123_0323 where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')
+union
+select distinct pan as pan,batchid,rptsernum,customername as personname,'TRN' as sources from str_prioritization2.trftrn_0123_0323 where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')
+union
+select distinct pan as pan,batchid,rptsernum,customername as personname,'TRN' as sources from str_prioritization2.trftrn_0422_1222 where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')
+union
+select distinct pan as pan,batchid,rptsernum,customername as personname,'TRN' as sources from risk_priority.trftrn_21_22 where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')              
+)
+
+select * from inp_lpe_trf_data
+
+-----------------------------------------------------
 ## Query batchid||rptsernum wise pan,concat pan, person name and occupation
 
 with cte1 as
@@ -1842,3 +2109,206 @@ isolated_str_1804_2212.reportserialnum AS rptsernum
 FROM risk_priority.isolated_str_1804_2212)
 --group by recategory
 --order by countt desc
+
+--------------------------------------------------------------------------------------
+FINNET 2.0 STR extract
+
+with cte0 as
+(select [Fiu_Re_Id],[Re_Name], b.[id_],[fiuBatchId],[reportTypeId],[reportTypeName], [reId],b.batchId
+FROM [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_BatchUpload] (nolock) b
+inner join [FINCORE_DB].[Fincore].[Account_Master] (nolock) am on am.[Re_Id]=b.[reId]
+inner join [FINCORE_BRIDGE].[fingate_Report](nolock) r on r.[batchid]=b.[id_] and r.status=35 and  b.[reportTypeName]='STR'
+), 
+cte1 as
+(
+select  id_,[reportId],relationFlag,batchId,reportType,transactionType,floor(amount) amount,senderName sender_name,senderAcNo sender_acc,beneficiaryName reciever_name,beneficiaryAcNo reciever_acc,'NEFT/RTGS' as source  
+from [FINCORE_BRIDGE].[fingate_TsOne] (nolock) where reportType='STR'
+union
+select [reportId],id_,relationFlag,batchId,reportType,transactionType,floor(amount) amount,senderName sender_name,senderAcNo sender_acc, [benefName] reciever_name,beneficiaryAcNo reciever_acc,'IMPS' as source  
+from [FINCORE_BRIDGE].[fingate_TsTwo] (nolock) where reportType='STR'
+union
+select [reportId],id_,relationFlag,batchId,reportType,transactionType,floor( [transactionAmount]) amount,senderName sender_name,senderAcNo sender_acc,  [beneficiaryName] reciever_name,beneficiaryAcNo reciever_acc,'UPI' as source  
+from [FINCORE_BRIDGE].[fingate_TsThree] (nolock) where reportType='STR'
+union
+select [reportId],id_,relationFlag,batchId,reportType,transactionType,floor( [transactionAmount]) amount, [issuingBankName] sender_name,'NA' as sender_acc,[customerName] reciever_name,'NA' as reciever_acc,'INSURENCE' as source  
+from [FINCORE_BRIDGE].[fingate_TsFour] (nolock) where reportType='STR'
+union
+select [reportId],id_,'NA' as relationFlag,batchId,reportType,transactionType,floor( amount) amount, 'NA' sender_name,'NA' as sender_acc,[customerName] reciever_name,accountNo as reciever_acc,'MUTUAL FUND' as source  
+from [FINCORE_BRIDGE].[fingate_TsFive] (nolock) where reportType='STR'
+),
+cte2 as(select cte0.[Fiu_Re_Id],[Re_Name],[fiuBatchId],cte1.* from cte0 inner join cte1 on cte0.id_=cte1.batchId)
+,
+cte3 as(select cte2.[reportId],cte2.relationFlag,cte2.batchId,cte2.reportType,cte2.transactionType,cte2.amount,cte2.sender_name,cte2.sender_acc,cte2.reciever_name,cte2.reciever_acc,cte2.source,gs1.[gosTextNarration] gosdoi,gs1.[gosTag2] source_of_alert from cte2
+inner join [FINCORE_BRIDGE].[fingate_Gos] (nolock) gs1 on cte2.[reportId]=gs1.[reportId]
+),
+cte4 as (
+select firstName as Name,pan,[telephoneNumber],[mobileNumber],email,reportId,primaryAddressLine1 address,primaryPinCode pincode,'INP' as entity_source from [FINCORE_BRIDGE].[fingate_PersonDetail]
+union
+select Name,pan,[telephoneNumber],[mobileNumber],[emailId],reportId,addressLine1 address,pinCode,'LPE' as entity_source from [FINCORE_BRIDGE].[fingate_EntityDetail]
+),
+cte5 as (
+select cte3.*,cte4.Name,cte4.pan,cte4.telephoneNumber,cte4.mobileNumber,cte4.email,cte4.address,cte4.pincode,entity_source from cte3 inner join cte4 on cte3.reportId=cte4.reportId
+)
+select top 50 * from cte5
+
+select top 50 * from [FINCORE_BRIDGE].[fingate_TsFive] where reportType='STR'
+
+--select top 5 * from [FINCORE_BRIDGE].[fingate_PersonDetail]
+--select top 5 * from [FINCORE_BRIDGE].[fingate_EntityDetail]
+
+-----------------------------------------------------------------------------------
+
+## o	where source of alert is CV/LQ/MR or suspicion due to terror financing is YES.
+
+SELECT DISTINCT batchid,rptsernum, originalrptsernum, mainpersonname, sourceofalert, suspduetoproceedsofcrime, suspduetocomplextrans, suspduetonoecorationale, suspoffinancingofterrorism, attemptedtransaction, groundsofsusp, detailsofinvestigations, leainformed, leadetails, priorityrating, reportcoverage, additionaldocuments
+	FROM str_prioritization2.report_22_23 
+    WHERE (batchid,rptsernum) NOT IN (SELECT DISTINCT batchid, rptsernum FROM str_prioritization2.duplicate_str_tagged_removed WHERE rr=1)
+    AND sourceofalert IN ('CV','LQ','MR') OR suspoffinancingofterrorism = 'Y'
+	
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+## o	where nationality reported is other than IN, XX, ZZ in INP file.
+
+SELECT DISTINCT batchid, rptsernum, accountnum, personname, customerid, relationflag, commaddress, commcity, commstatecode, commpincode, commcountrycode, secaddress, seccity, secstatecode, secpincode, seccountrycode, telephone, mobile, fax, email, pan, uin, gender, dob, identificationtype, identificationnumber, issuingauthority, placeofissue, nationality, placeofwork, fatherorspouse, occupation, deletedflag, branchrefnum
+	FROM str_prioritization2.arfinp_22_23 
+    WHERE (batchid,rptsernum) NOT IN (SELECT DISTINCT batchid, rptsernum FROM str_prioritization2.duplicate_str_tagged_removed WHERE rr=1 AND LENGTH(CONCAT(groundsofsusp,'',detailsofinvestigations))>500)
+    AND nationality NOT IN ('IN','XX','ZZ')
+	
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+## o	where country of incorporation is reported other than IN, XX, ZZ.
+
+SELECT DISTINCT batchid, rptsernum, accountnum, personname, customerid, relationflag, commaddress, commcity, commstatecode, commpincode, commcountrycode, secaddress, seccity, secstatecode, secpincode, seccountrycode, telephone, mobile, fax, email, pan, uin, constitutiontype, registrationnumber, dateofincorporation, placeofregistration, countrycode, natureofbusiness, deletedflag, branchrefnum
+	FROM str_prioritization2.arflpe_22_23 
+    WHERE (batchid,rptsernum) NOT IN (SELECT DISTINCT batchid, rptsernum FROM str_prioritization2.duplicate_str_tagged_removed WHERE rr=1 AND LENGTH(CONCAT(groundsofsusp,'',detailsofinvestigations))>500)
+    AND countrycode NOT IN ('IN','XX','ZZ')
+	
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+## o	if identification type reported as NREGA Job Holder in INP file.
+
+SELECT DISTINCT batchid, rptsernum, accountnum, personname, customerid, relationflag, commaddress, commcity, commstatecode, commpincode, commcountrycode, secaddress, seccity, secstatecode, secpincode, seccountrycode, telephone, mobile, fax, email, pan, uin, gender, dob, identificationtype, identificationnumber, issuingauthority, placeofissue, nationality, placeofwork, fatherorspouse, occupation, deletedflag, branchrefnum
+	FROM str_prioritization2.arfinp_22_23
+    WHERE (batchid,rptsernum) NOT IN (SELECT DISTINCT batchid, rptsernum FROM str_prioritization2.duplicate_str_tagged_removed WHERE rr=1 AND LENGTH(CONCAT(groundsofsusp,'',detailsofinvestigations))>500)
+    AND identificationtype = 'H'
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+## o	if constitution type reported in LPE file is among trust, society or association
+
+SELECT DISTINCT * FROM str_prioritization2.arflpe_22_23
+    WHERE (batchid,rptsernum) NOT IN (SELECT DISTINCT batchid, rptsernum FROM str_prioritization2.duplicate_str_tagged_removed WHERE rr=1 AND LENGTH(CONCAT(groundsofsusp,'',detailsofinvestigations))>500)
+    AND constitutiontype IN ('F','G', 'H')
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+## o	PANs with relationship flag ‘A’, which have been reported in greater than or equal to 5 STRs.
+
+WITH CTE1 AS (SELECT batchid, rptsernum, accountnum, relationflag, deletedflag, email, mobile, mobile_clean, pan, pan_clean, personname, uin
+FROM str_prioritization2.inp_res
+UNION
+SELECT batchid, rptsernum, accountnum, relationflag, deletedflag, email, mobile, mobile_clean, pan, pan_clean, personname, uin
+FROM str_prioritization2.lpe_res)
+SELECT batchid,rptsernum,pan_clean,relationflag FROM CTE1 GROUP BY (batchid,rptsernum,pan_clean,relationflag) HAVING relationflag = 'A' AND COUNT(batchid::text||'|'||rptsernum::text) >= 5
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+WITH CTE1 AS (SELECT batchid, rptsernum, accountnum, relationflag, deletedflag, email, mobile, mobile_clean, pan, pan_clean, personname, uin
+FROM str_prioritization2.inp_res WHERE relationflag = 'A'
+UNION
+SELECT batchid, rptsernum, accountnum, relationflag, deletedflag, email, mobile, mobile_clean, pan, pan_clean, personname, uin
+FROM str_prioritization2.lpe_res WHERE relationflag = 'A'),
+----------------------------union of inp_lpe_FY22-23------------------------------------------
+
+CTE2 AS (SELECT * FROM ctr_5yrs.all_india_panwise_accountwise WHERE batchid BETWEEN '2204010000' AND '2212319999'
+UNION
+SELECT * FROM karnataka_election.all_india_panwise_accountwise_jan_to_mar23),
+----------union of ctrs-----------------------FY22-23----------------------------------------
+
+CTE3 AS (SELECT * FROM CTE1 WHERE (batchid,rptsernum) NOT IN (SELECT DISTINCT batchid, rptsernum 
+        FROM str_prioritization2.duplicate_str_tagged_removed WHERE rr!=1 AND LENGTH(CONCAT(groundsofsusp,'',detailsofinvestigations))>500)),
+--------removing all the brpt from above which are found to be duplicated---------------------
+
+CTE4 AS (SELECT * FROM CTE3 WHERE (batchid,rptsernum) IN (SELECT DISTINCT batchid, rptsernum FROM str_prioritization2.amount_greater_than_50l))
+--------getting only those brpt which have total of greater than 50 Lakhs----------------------
+CTE5 AS (SELECT distinct a.*,b.* FROM CTE4 a INNER JOIN CTE2 b ON a.pan_clean = b.pan),
+SELECT a.*,r.mainpersonname CTE5 a INNER JOIN  str_prioritization2.report_res_final r ON a.batchid = r.batchid AND a.rptsernum = r.rptsernum
+
+---------------------------------------------------------------------------------------------------
+
+Create blank table
+
+open PuTTY
+host name (ip address)-172.16.22.15
+Post-22
+Click Open
+User Name appadmin1
+FinNet@2021
+
+
+[appadmin1@oltpdbsal02 ~]$ pwd
+/home/appadmin1
+[appadmin1@oltpdbsal02 ~]$ cd /
+[appadmin1@oltpdbsal02 /]$ ls
+bin  boot  data1  dev  etc  home  lib  lib64  media  mnt  opt  Postgres  proc  Quarantine  root  run  sbin  srv  sys  tmp  usr  var
+[appadmin1@oltpdbsal02 /]$ sudo psql -U postgres
+[sudo] password for appadmin1:
+Password for user postgres:
+psql (14.4)
+Type "help" for help.
+
+postgres=# \copy karnataka_election.trans_march23 from '/data1/pgsql_data/ARFTRN_CTR_MARCH23.csv' delimiter ',' csv header
+COPY 1324086
+postgres=#
+
+For Backup
+sudo pg_dump -U postgres -F c -n risk_priority > /Postgres/risk_priority.backup
+
+-----------------------------------------------------------------------------------------------------------
+
+def query_run(query,engine_,path_to_file, file_name,mode = 'a'):
+    '''
+    **query**: ('str') Enter the query 
+    **engine_** : ('str') the function creates a connection with postgres server 172.16.22.15:5432/postgres as default,
+              other engines can be specified here as well
+    **mode**: ('str') mode is append by default, can be changed to simply write as well
+    **path_to_file**: ('str') path where the file to be saved
+    **filename**: ('str') name of the file, defaults get saved as csv
+    '''
+    if mode == 'a':
+        try:
+            print('--Engine Running--')
+            engine_ = engine_
+            conn = engine_.connect()
+            results = pd.read_sql(query,conn)
+            conn.close()
+            engine_.dispose()
+            print('--Engine Closing--')
+            print('Results_appending')
+            file_name = f'{file_name}.csv'
+            path = os.path.join(path_to_file,file_name)
+            results.to_csv(path, index = False, mode = mode, header= not os.path.exists(path))
+        except OperationalError as oe:
+            time.sleep(3000)
+            print('Reconnecting with Server')
+            print('--Engine Running--')
+            engine_ = engine_
+            conn = engine_.connect()
+            results = pd.read_sql(query,conn)
+            conn.close()
+            engine_.dispose()
+            print('--Engine Closing--')
+            print('Results_appending')
+            filename = f'{file_name}.csv'
+            path = os.path.join(path_to_file,file_name)
+            results.to_csv(path, index = False, mode = mode, header= not os.path.exists(path))
+    else:
+        print('--Engine Running--')
+        engine_ = engine_
+        conn = engine_.connect()
+        results = pd.read_sql(query,engine_)
+        conn.close()
+        engine_.dispose()
+        print('--Engine Closing--')
+        print('Results_appending')
+        file_name = f'{file_name}.csv'
+        path = os.path.join(path_to_file,file_name)
+        results.to_csv(path, index = False, mode = mode)
+
+
