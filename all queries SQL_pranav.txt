@@ -315,275 +315,9 @@ or upper(r.detailsofinvestigations) like ('%ONLINE%') and (upper(r.detailsofinve
 
 ## To concatenate batchid rptsernum
 ="('"&A1&"',"&"'"&B1&"'),"
+="'"&A1&"|"&""&B1&"',"
 
 ---------------------------------------------------
---NTO get batchid,rptsernum to be excluded from isolated
-
-with cte1 as (select batchid,fiureid from [FINCORE_BACKUP_CC].[BATCH] where batchid between 1804010000 and 2303319999 and reporttype='STR' and batchtype<>'D' and batchid not in (select distinct originalbatchid from [FINCORE_BACKUP_CC].[BATCH])), --where batchid between 1804010000 and 2303319999)),
-cte2 as (select batchid, rptsernum, trim(accountnum) accountnum, pan, cast(mobile as nvarchar) mobile,commstatecode,COMMADDRESS,'LPE'source from [FINCORE_BACKUP_CC].[ARFLPE]
-where batchid in (select batchid from cte1) and upper(trim(pan)) in ('AAATD3881E', 'AAATS5184K')--, 'AALTS5161R', 'AADAS4869H', 'AAJTS3806K', 'AAIAS3783R', 'AAATU6921G', 'AAGTS2593E', 'AAATC4867F', 'AAAAF1372R', 'AAIAS4518A', 'AAATE2055K', 'AAATD7543D', 'AAAAG0964E', 'AABTS8541B', 'AACCK6130C', 'AAATC5776B', 'AADAK1185C', 'AAATC2438G', 'AAFTS7171P', 'AAATB0854D', 'AABTT7334F', 'AAAAB3958P', 'AAAAH4507Q', 'AAATP5171B', 'AAATG5732D', 'AACAA8472D', 'AAIAS7359B', 'AAATD5514G', 'AAKTS6969A', 'AAJTS8558G', 'AAYAS2537F', 'AAAAE7494B', 'AAATH3891G', 'AAATU4109N', 'AAAJS3102M', 'AADAS4239B', 'AAMTS6717Q', 'AAFHJ0674L', 'AACTS8355A', 'AAATP5334N', 'AAATS3298N', 'AABTA3080D', 'AAATD0888R', 'AABTS3650F', 'AAATM5634J', 'AABTB5167C', 'AABTM0579P', 'AACTM3004C', 'AAAJS2345E', 'AAEAS3959D', 'AAEFH5066R', 'AAATB6483A', 'AAATS5369L', 'AAAAT4247P', 'AAAAO0921F', 'AAATW1190P', 'AACAB8592M', 'AAAJV0477C', 'AAATA5812E', 'AABTM0360Q', 'AAAAC1386N', 'AAGTS6594R', 'AAATR0784L', 'AAAAR7024C', 'AAATM8597L', 'AAJFA4492K', 'AAATT8903H', 'AAATD2130J', 'AAAAM3254B', 'AADTS1949R', 'AABAA1932D', 'AAABS1592B', 'AAQAS2495G', 'AADTS3991B', 'AAHTS1144A', 'AABTD2055R', 'AAAAA0873A', 'AAAAP2191G', 'AAAJP1130G', 'AAATC9291M', 'AAATD5608F', 'AAATB5292R', 'AAATB8340A')
-union
-select batchid, rptsernum, trim(accountnum) accountnum, pan,cast(mobile as nvarchar) mobile,commstatecode,COMMADDRESS,'INP'source from [FINCORE_BACKUP_CC].[ARFINP]
-where batchid in (select batchid from cte1) and upper(trim(pan)) in  ('AAATD3881E', 'AAATS5184K')),--, 'AALTS5161R', 'AADAS4869H', 'AAJTS3806K', 'AAIAS3783R', 'AAATU6921G', 'AAGTS2593E', 'AAATC4867F', 'AAAAF1372R', 'AAIAS4518A', 'AAATE2055K', 'AAATD7543D', 'AAAAG0964E', 'AABTS8541B', 'AACCK6130C', 'AAATC5776B', 'AADAK1185C', 'AAATC2438G', 'AAFTS7171P', 'AAATB0854D', 'AABTT7334F', 'AAAAB3958P', 'AAAAH4507Q', 'AAATP5171B', 'AAATG5732D', 'AACAA8472D', 'AAIAS7359B', 'AAATD5514G', 'AAKTS6969A', 'AAJTS8558G', 'AAYAS2537F', 'AAAAE7494B', 'AAATH3891G', 'AAATU4109N', 'AAAJS3102M', 'AADAS4239B', 'AAMTS6717Q', 'AAFHJ0674L', 'AACTS8355A', 'AAATP5334N', 'AAATS3298N', 'AABTA3080D', 'AAATD0888R', 'AABTS3650F', 'AAATM5634J', 'AABTB5167C', 'AABTM0579P', 'AACTM3004C', 'AAAJS2345E', 'AAEAS3959D', 'AAEFH5066R', 'AAATB6483A', 'AAATS5369L', 'AAAAT4247P', 'AAAAO0921F', 'AAATW1190P', 'AACAB8592M', 'AAAJV0477C', 'AAATA5812E', 'AABTM0360Q', 'AAAAC1386N', 'AAGTS6594R', 'AAATR0784L', 'AAAAR7024C', 'AAATM8597L', 'AAJFA4492K', 'AAATT8903H', 'AAATD2130J', 'AAAAM3254B', 'AADTS1949R', 'AABAA1932D', 'AAABS1592B', 'AAQAS2495G', 'AADTS3991B', 'AAHTS1144A', 'AABTD2055R', 'AAAAA0873A', 'AAAAP2191G', 'AAAJP1130G', 'AAATC9291M', 'AAATD5608F', 'AAATB5292R', 'AAATB8340A')),
-
-cte3 as (select pan, batchid, rptsernum, accountnum,sum(case when debitcredit='C' then amount end)credit_amount,sum(case when debitcredit='D' then amount end)debit_amount from(
-select pan, t.batchid,t.rptsernum,trim(t.accountnum)accountnum,debitcredit,amount from [FINCORE_BACKUP_CC].[ARFTRN] t inner join (select distinct pan, batchid, rptsernum,trim(accountnum)accountnum from cte2) i
-on t.batchid=i.batchid and t.rptsernum=i.rptsernum and trim(t.accountnum)=trim(i.accountnum))z
-group by pan, batchid, rptsernum, accountnum),
-
-cte9 as (select pan,batchid,rptsernum,accountnum,sum(case when [TRANSACTIONTYPE]='R' then [AMOUNTRUPEES] end)credit_amount,sum(case when [TRANSACTIONTYPE]='P' then [AMOUNTRUPEES] end)debit_amount from(
-select t.pan, t.batchid,t.rptsernum,trim(t.accountnum)accountnum,[TRANSACTIONTYPE],[AMOUNTRUPEES] from [FINCORE_BACKUP_CC].[TRFTRN] t inner join (select distinct pan, batchid, rptsernum,trim(accountnum)accountnum from cte2) i
-on t.batchid=i.batchid and t.rptsernum=i.rptsernum and trim(t.accountnum)=trim(i.accountnum))z
-group by pan, batchid, rptsernum, accountnum),
-
-cte10 as ( select * from (select  pan, batchid, rptsernum, accountnum,credit_amount, debit_amount from cte3 union 
-select pan,batchid,rptsernum,accountnum,credit_amount, debit_amount from cte9 )a)
-
-select * from cte10
-
---cte4 as (select pan, count(distinct concat(batchid,rptsernum))countt, sum(credit_amount)credit_amount, sum(debit_amount)debit_amount from cte10 group by pan), 
---cte5 as ( select pan, b.batchid, b.rptsernum, trim(b.accountnum)accountnum,statecode, [ADDRESS]from [FINCORE_BACKUP_CC].[ARFBRC] b inner join 
---(select distinct pan, batchid, rptsernum,trim(accountnum)accountnum from cte2) i on b.batchid=i.batchid and b.rptsernum=i.rptsernum and trim(b.accountnum)=trim(i.accountnum)),
---cte6 as (select pan,commstatecode, commaddress,source from(select pan, batchid, commstatecode, commaddress, source, row_number() over(partition by pan order by batchid desc ) roww  from cte2 
---		where commstatecode is not null and commstatecode not in ('XX','ZZ'))z where roww=1),
---cte7 as (select pan,concat('M-',mobile) mobile from(select pan,batchid,mobile, row_number() over(partition by pan order by batchid desc) roww  from cte2 where mobile is not null and mobile <>'' and mobile <>'0')z where roww=1),
---cte8 as ( select pan,statecode, address as br_add from(select pan,batchid, statecode, address,row_number() over(partition by pan order by batchid desc ) roww from cte5
---		where statecode is not null and statecode not in ('XX','ZZ'))z where roww=1)
-	
---select cte4.pan,countt,credit_amount,debit_amount,commstatecode, commaddress,source, mobile, statecode, br_add from cte4
---left join  cte6 on cte4.pan=cte6.pan
---left join  cte7 on cte4.pan=cte7.pan
---left join  cte8 on cte4.pan=cte8.pan
-
-------------------------------------------------------------------
-
-NTO get PAN based result after removing isolated reports
-
-with cte1 as (select batchid,
- CASE  
-        WHEN batchid between 1804010000 and 1903319999 then 'FY 2018-19' 
-		WHEN batchid between 1904010000 and 2003319999 then 'FY 2019-20' 
-		WHEN batchid between 2004010000 and 2103319999 then 'FY 2020-21' 
-		WHEN batchid between 2104010000 and 2203319999 then 'FY 2021-22' 
-		WHEN batchid between 2204010000 and 2303319999 then 'FY 2022-23' 
-		 end fy ,
-fiureid from [FINCORE_BACKUP_CC].[BATCH] where batchid between 1804010000 and 2303319999 and reporttype='STR' and batchtype<>'D' and batchid not in (select distinct originalbatchid from [FINCORE_BACKUP_CC].[BATCH])
-),
-
-cte11 as (select batchid,fy from cte1),
-
-
-
-cte2 as (select batchid, rptsernum, trim(accountnum) accountnum, pan, cast(mobile as nvarchar) mobile,commstatecode,COMMADDRESS,'LPE'source from [FINCORE_BACKUP_CC].[ARFLPE]
-where 
-batchid in (select batchid from cte1) and
-concat(cast(batchid as nvarchar),cast(rptsernum as nvarchar)) not in ()
-and upper(trim(pan)) in ()
-union
-select batchid, rptsernum, trim(accountnum) accountnum, pan,cast(mobile as nvarchar) mobile,commstatecode,COMMADDRESS,'INP'source from [FINCORE_BACKUP_CC].[ARFINP]
-where batchid in (select batchid from cte1) and 
-concat(cast(batchid as nvarchar),cast(rptsernum as nvarchar)) not in ()
-and upper(trim(pan)) in  ()),
-
-cte12 as(select bb.batchid, fy,rptsernum, accountnum, pan,mobile,commstatecode,COMMADDRESS,source from cte2 aa join cte11 bb on aa.batchid=bb.batchid),
-
-
-
-cte3 as (select pan, batchid, rptsernum,fy, accountnum,sum(case when debitcredit='C' then amount end)credit_amount,sum(case when debitcredit='D' then amount end)debit_amount from(
-select pan, t.batchid,t.rptsernum,fy,trim(t.accountnum)accountnum,debitcredit,amount from [FINCORE_BACKUP_CC].[ARFTRN] t inner join (select distinct pan, batchid, rptsernum,fy,trim(accountnum)accountnum from cte12) i
-on t.batchid=i.batchid and t.rptsernum=i.rptsernum and trim(t.accountnum)=trim(i.accountnum))z
-group by pan, batchid, rptsernum, fy,accountnum),
-
-cte9 as (select pan,batchid,rptsernum,fy,accountnum,sum(case when [TRANSACTIONTYPE]='R' then [AMOUNTRUPEES] end)credit_amount,sum(case when [TRANSACTIONTYPE]='P' then [AMOUNTRUPEES] end)debit_amount from(
-select t.pan, t.batchid,t.rptsernum,fy,trim(t.accountnum)accountnum,[TRANSACTIONTYPE],[AMOUNTRUPEES] from [FINCORE_BACKUP_CC].[TRFTRN] t inner join (select distinct pan, batchid, rptsernum,fy,trim(accountnum)accountnum from cte12) i
-on t.batchid=i.batchid and t.rptsernum=i.rptsernum and trim(t.accountnum)=trim(i.accountnum))z
-group by pan, batchid, rptsernum, fy,accountnum),
-
-cte10 as ( select pan, batchid, rptsernum, fy,accountnum,credit_amount, debit_amount  from (select  pan, batchid, rptsernum,fy, accountnum,credit_amount, debit_amount from cte3 union 
-select pan,batchid,rptsernum,fy,accountnum,credit_amount, debit_amount from cte9 )a),
-
-
-
-cte4 as (select pan, count(distinct concat(batchid,rptsernum))countt, fy,
-sum(credit_amount)credit_amount, sum(debit_amount)debit_amount from cte10 group by pan, fy), 
-cte5 as ( select pan, b.batchid, b.rptsernum,fy, trim(b.accountnum)accountnum,statecode, [ADDRESS]from [FINCORE_BACKUP_CC].[ARFBRC] b inner join 
-(select distinct pan, batchid, rptsernum,fy,trim(accountnum)accountnum from cte12) i on b.batchid=i.batchid and b.rptsernum=i.rptsernum and trim(b.accountnum)=trim(i.accountnum)),
-cte6 as (select pan,fy,commstatecode, commaddress,source from(select pan, batchid, fy, commstatecode, commaddress, source, row_number() over(partition by pan order by batchid desc ) roww  from cte12 
-		where commstatecode is not null and commstatecode not in ('XX','ZZ'))z where roww=1),
-cte7 as (select pan,concat('M-',mobile) mobile from(select pan,batchid,mobile,fy, row_number() over(partition by pan order by batchid desc) roww  from cte12 where mobile is not null and mobile <>'' and mobile <>'0')z where roww=1),
-cte8 as ( select pan,fy,statecode, address as br_add from(select pan,batchid, statecode,fy, address,row_number() over(partition by pan order by batchid desc ) roww from cte5
-		where statecode is not null and statecode not in ('XX','ZZ'))z where roww=1)
-	
-select cte4.pan,cte4.fy,countt,credit_amount,debit_amount,commstatecode, commaddress,source, mobile, statecode, br_add from cte4
-left join  cte6 on cte4.pan=cte6.pan
-left join  cte7 on cte4.pan=cte7.pan
-left join  cte8 on cte4.pan=cte8.pan
-
-----------------------------------------------------------------------
-with batch_data as(select distinct batchid from risk_priority.batch_res where reporttype='STR' and batchid between 2104010000 and 2303319999 and  batchtype<>'D' and batchid not in (select distinct originalbatchid from risk_priority.batch_res)
-union 
-select distinct batchid from str_prioritization2.batch_res_final where reporttype='STR' and  batchid between 2104010000 and 2303319999 and batchtype<>'D' and batchid not in (select distinct originalbatchid from str_prioritization2.batch_res_final)),
-
-report_data as(
-SELECT batchid,rptsernum
-	FROM risk_priority.report_5_years where batchid in(select * from batch_data)
-union    
-SELECT batchid,rptsernum
-	FROM str_prioritization2.report_res_final where batchid in(select * from batch_data)),
-
-non_iso_str as(select batchid,rptsernum from report_data where (batchid,rptsernum) not in (select batchid,reportserialnum from risk_priority.isolated_str_1804_2212)),
-    
-inp_lpe_trf_data as(
-select distinct pan_clean as pan,batchid,rptsernum,personname,'INP' as sources from risk_priority.inp_res where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')
-union 
-select distinct pan,batchid,rptsernum,personname,'INP' as sources from str_prioritization2.arfinp_0123_0323 where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')
-union
-select distinct pan_clean as pan,batchid,rptsernum,personname,'LPE' as sources from risk_priority.lpe_res where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')
-union
-select distinct pan as pan,batchid,rptsernum,personname,'LPE' as sources from str_prioritization2.arflpe_0123_0323 where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')
-union
-select distinct pan as pan,batchid,rptsernum,customername as personname,'TRN' as sources from str_prioritization2.trftrn_0123_0323 where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')
-union
-select distinct pan as pan,batchid,rptsernum,customername as personname,'TRN' as sources from str_prioritization2.trftrn_0422_1222 where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')
-union
-select distinct pan as pan,batchid,rptsernum,customername as personname,'TRN' as sources from risk_priority.trftrn_21_22 where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')              
-)
-
-select * from inp_lpe_trf_data
-----------------------------------------------------------------------
-
-with cte0 as (select distinct batchid, fiureid, ENTITYNAME  from [FINCORE_BACKUP_CC].[BATCH]  where batchid between 1804010000 and 2303319999 and batchtype<>'D'  and fiureid='ZZZZZ00052' and reporttype='STR' and batchid not in 
-(select distinct originalbatchid from [FINCORE_BACKUP_CC].[BATCH])),
-
-cte1 as(select distinct batchid,rptsernum,[SOURCEOFALERT],MAINPERSONNAME  from [FINCORE_BACKUP_CC].[REPORT]  where upper([SOURCEOFALERT]) != 'CV'  and  batchid in (select distinct batchid from cte0)),
-
-cte2 as (select  distinct l.batchid, l.rptsernum,concat(cast(l.batchid as nvarchar),'||',cast(l.rptsernum as nvarchar)) brn,constitutiontype,
-CASE  
-        WHEN l.batchid between 1804010000 and 1903319999 then 'FY 2018-19' 
-		WHEN l.batchid between 1904010000 and 2003319999 then 'FY 2019-20' 
-		WHEN l.batchid between 2004010000 and 2103319999 then 'FY 2020-21' 
-		WHEN l.batchid between 2104010000 and 2203319999 then 'FY 2021-22' 
-		WHEN l.batchid between 2204010000 and 2303319999 then 'FY 2022-23' 
-		 end financial_year,  
-		 trim(PERSONNAME) PERSONNAME  from [FINCORE_BACKUP_CC].[ARFLPE] l join cte1 c on c.batchid=l.batchid and c.rptsernum=l.rptsernum 
-and constitutiontype in ('D','E','J','H','F')) 
-
-
-select c.batchid, c.rptsernum, brn, constitutiontype,financial_year,personname,alertindicator from cte2 c join [HDM_DB].[FINCORE_BACKUP_CC].[ALERTINDICATOR] a on c.batchid=a.batchid and c.rptsernum= a.rptsernum and 
-
-upper([ALERTINDICATOR])  LIKE '%ADVERSE%CRIMINAL%'
-
-upper([ALERTINDICATOR])  LIKE '%CUSTOMER%OPEN%'
- (upper([ALERTINDICATOR])  LIKE '%CUSTOMER LEFT%' OR
-upper([ALERTINDICATOR])  LIKE '%BENEFICIAL OWNER%' OR
-upper([ALERTINDICATOR])  LIKE '%FORGED IDENTIFICATION%' OR
-upper([ALERTINDICATOR])  LIKE '%ADDRESS FOUND%' OR
-upper([ALERTINDICATOR])  LIKE '%MULTIUPLE ACCOUNTS%' OR
-upper([ALERTINDICATOR])  LIKE '%CRIMINAL OFFENCE%' OR
-upper([ALERTINDICATOR])  LIKE '%TF OFFENCE%' OR
-upper([ALERTINDICATOR])  LIKE '%CRIMINAL%' OR
-upper([ALERTINDICATOR])  LIKE '%TERRORIST ACTIVITIES%' OR
-upper([ALERTINDICATOR])  LIKE '%TERRORIST ACTIVITIES%' OR 
-upper([ALERTINDICATOR])  LIKE '%COMPLETE TRANSACTION%' OR
-upper([ALERTINDICATOR])  LIKE '%OVER CAUTIOUS%' OR
-upper([ALERTINDICATOR])  LIKE '%CUSTOMER AVOIDING%' OR
-upper([ALERTINDICATOR])  LIKE '%INCONSISTENT INFORMATION%' OR
-upper([ALERTINDICATOR])  LIKE '%CUSTOMER PROVIDES%' OR
-upper([ALERTINDICATOR])  LIKE '%CUSTOMER ACTING%' OR
-upper([ALERTINDICATOR])  LIKE '%MULTIPLE CUSTOMERS%' OR
-upper([ALERTINDICATOR])  LIKE '%AVOID REPORTING%' OR
-upper([ALERTINDICATOR])  LIKE '%SOURCE OF FUND%'OR
-upper([ALERTINDICATOR])  LIKE '%COMPLAINT RECEIVED%' OR
-upper([ALERTINDICATOR])  LIKE '%OTHER AGENTS%' OR
-upper([ALERTINDICATOR])  LIKE '%FACILITY AGAINST FDR%' OR
-upper([ALERTINDICATOR])  LIKE '%AVOID LINKAGE%' OR
-upper([ALERTINDICATOR])  LIKE '%MULTIPLE CUSTOMERS%' OR
-upper([ALERTINDICATOR])  LIKE '%BUSINESS OUT OF RESIDENTIAL%' OR
-upper([ALERTINDICATOR])  LIKE '%FREQUENT LOCKER%' OR
-upper([ALERTINDICATOR])  LIKE '%PARTY UNDER SUSPICIUOUS CIRCUMSTANCES%' OR
-upper([ALERTINDICATOR])  LIKE '%CV 2.1%'OR
-upper([ALERTINDICATOR])  LIKE '%CV 1.1%'OR
-  
-upper([ALERTINDICATOR])  like '%CV 3.1%'or
-upper([ALERTINDICATOR])  like '%CV 4.1%'or
-upper([ALERTINDICATOR])  like '%CV 4.2%'or
-upper([ALERTINDICATOR])  like '%LQ 1.1%'or
-upper([ALERTINDICATOR])  like '%LQ 2.1%'or
-upper([ALERTINDICATOR])  like '%MR 1.1%'or
-upper([ALERTINDICATOR])  like '%MR 2.1%'or
-upper([ALERTINDICATOR])  like '%EL 1.1%'or
-upper([ALERTINDICATOR])  like '%EL 2.1%'or
-upper([ALERTINDICATOR])  like '%EL 2.2%'or
-upper([ALERTINDICATOR])  like '%EL 3.1%'or
-upper([ALERTINDICATOR])  like '%EL 3.2%'or
-upper([ALERTINDICATOR])  like '%EL 4.1%'or
-upper([ALERTINDICATOR])  like '%EL 4.2%'or
-upper([ALERTINDICATOR])  like '%EL 4.3%'or
-upper([ALERTINDICATOR])  like '%PC 1.1%'or
-upper([ALERTINDICATOR])  like '%BA 1.2%'or
-upper([ALERTINDICATOR])  like '%TY 6.2%'or
-upper([ALERTINDICATOR])  like '%TY 12.1%'or
-upper([ALERTINDICATOR])  like '%TY 12.2%'or
-upper([ALERTINDICATOR])  like '%TY 10.28%'or
-upper([ALERTINDICATOR])  like '%EL 6.1%'or
-upper([ALERTINDICATOR])  like '%RM 5.5%' or
-upper([ALERTINDICATOR])  like '%CV3.1%'or
-upper([ALERTINDICATOR])  like '%CV4.1%'or
-upper([ALERTINDICATOR])  like '%CV4.2%'or
-upper([ALERTINDICATOR])  like '%LQ1.1%'or
-upper([ALERTINDICATOR])  like '%LQ2.1%'or
-upper([ALERTINDICATOR])  like '%MR1.1%'or
-upper([ALERTINDICATOR])  like '%MR2.1%'or
-upper([ALERTINDICATOR])  like '%EL1.1%'or
-upper([ALERTINDICATOR])  like '%EL2.1%'or
-upper([ALERTINDICATOR])  like '%EL2.2%'or
-upper([ALERTINDICATOR])  like '%EL3.1%'or
-upper([ALERTINDICATOR])  like '%EL4.1%'or
-upper([ALERTINDICATOR])  like '%EL4.2%'or
-upper([ALERTINDICATOR])  like '%EL4.3%'or
-upper([ALERTINDICATOR])  like '%PC1.1%'or
-upper([ALERTINDICATOR])  like '%BA1.2%'or
-upper([ALERTINDICATOR])  like '%TY6.2%'or
-upper([ALERTINDICATOR])  like '%TY12.1%'or
-upper([ALERTINDICATOR])  like '%TY12.2%'or
-upper([ALERTINDICATOR])  like '%TY10.28%'or
-upper([ALERTINDICATOR])  like '%EL6.1%'or
-upper([ALERTINDICATOR])  like '%RM5.5%')
-
----------------------------------------------------------------------
-
-with batch_data as(select distinct batchid from risk_priority.batch_res where reporttype='STR' and batchid between 2104010000 and 2303319999 and  batchtype<>'D' and batchid not in (select distinct originalbatchid from risk_priority.batch_res)
-union 
-select distinct batchid from str_prioritization2.batch_res_final where reporttype='STR' and  batchid between 2104010000 and 2303319999 and batchtype<>'D' and batchid not in (select distinct originalbatchid from str_prioritization2.batch_res_final)),
-
-report_data as(
-SELECT batchid,rptsernum
-	FROM risk_priority.report_5_years where batchid in(select * from batch_data)
-union    
-SELECT batchid,rptsernum
-	FROM str_prioritization2.report_res_final where batchid in(select * from batch_data)),
-
-non_iso_str as(select batchid,rptsernum from report_data where (batchid,rptsernum) not in (select batchid,reportserialnum from risk_priority.isolated_str_1804_2212)),
-    
-inp_lpe_trf_data as(
-select distinct pan_clean as pan,batchid,rptsernum,personname,'INP' as sources from risk_priority.inp_res where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')
-union 
-select distinct pan,batchid,rptsernum,personname,'INP' as sources from str_prioritization2.arfinp_0123_0323 where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')
-union
-select distinct pan_clean as pan,batchid,rptsernum,personname,'LPE' as sources from risk_priority.lpe_res where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')
-union
-select distinct pan as pan,batchid,rptsernum,personname,'LPE' as sources from str_prioritization2.arflpe_0123_0323 where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')
-union
-select distinct pan as pan,batchid,rptsernum,customername as personname,'TRN' as sources from str_prioritization2.trftrn_0123_0323 where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')
-union
-select distinct pan as pan,batchid,rptsernum,customername as personname,'TRN' as sources from str_prioritization2.trftrn_0422_1222 where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')
-union
-select distinct pan as pan,batchid,rptsernum,customername as personname,'TRN' as sources from risk_priority.trftrn_21_22 where (batchid,rptsernum) in (select * from non_iso_str) and pan in ('AAACB3302R', 'AAMCS2311K', 'AACCR9619R', 'AARCS3659P', 'AAECS7521B', 'AAQCS4079N', 'AABCW6386P', 'AAHCB4709M', 'AABCI4082J', 'AADCB0396E', 'AAECI8471N', 'AADCV0020H')              
-)
-
-select * from inp_lpe_trf_data
-
------------------------------------------------------
 ## Query batchid||rptsernum wise pan,concat pan, person name and occupation
 
 with cte1 as
@@ -2121,20 +1855,23 @@ inner join [FINCORE_BRIDGE].[fingate_Report](nolock) r on r.[batchid]=b.[id_] an
 ), 
 cte1 as
 (
-select  id_,[reportId],relationFlag,batchId,reportType,transactionType,floor(amount) amount,senderName sender_name,senderAcNo sender_acc,beneficiaryName reciever_name,beneficiaryAcNo reciever_acc,'NEFT/RTGS' as source  
+select  id_,[reportId],relationFlag,batchId,reportType,transactionType,floor(amount) amount,senderName sender_name,senderAcNo sender_acc,beneficiaryName reciever_name,beneficiaryAcNo reciever_acc,'NEFT/RTGS' as category ,'tsone' as source
 from [FINCORE_BRIDGE].[fingate_TsOne] (nolock) where reportType='STR'
 union
-select [reportId],id_,relationFlag,batchId,reportType,transactionType,floor(amount) amount,senderName sender_name,senderAcNo sender_acc, [benefName] reciever_name,beneficiaryAcNo reciever_acc,'IMPS' as source  
+select [reportId],id_,relationFlag,batchId,reportType,transactionType,floor(amount) amount,senderName sender_name,senderAcNo sender_acc, [benefName] reciever_name,beneficiaryAcNo reciever_acc,'IMPS' as category ,'tstwo' as source 
 from [FINCORE_BRIDGE].[fingate_TsTwo] (nolock) where reportType='STR'
 union
-select [reportId],id_,relationFlag,batchId,reportType,transactionType,floor( [transactionAmount]) amount,senderName sender_name,senderAcNo sender_acc,  [beneficiaryName] reciever_name,beneficiaryAcNo reciever_acc,'UPI' as source  
+select [reportId],id_,relationFlag,batchId,reportType,transactionType,floor( [transactionAmount]) amount,senderName sender_name,senderAcNo sender_acc,  [beneficiaryName] reciever_name,beneficiaryAcNo reciever_acc,'UPI' as category  ,'tsthree' as source
 from [FINCORE_BRIDGE].[fingate_TsThree] (nolock) where reportType='STR'
 union
-select [reportId],id_,relationFlag,batchId,reportType,transactionType,floor( [transactionAmount]) amount, [issuingBankName] sender_name,'NA' as sender_acc,[customerName] reciever_name,'NA' as reciever_acc,'INSURENCE' as source  
+select [reportId],id_,relationFlag,batchId,reportType,transactionType,floor( [transactionAmount]) amount, [issuingBankName] sender_name,'NA' as sender_acc,[customerName] reciever_name,'NA' as reciever_acc,'INSURENCE' as category ,'tsfour' as source 
 from [FINCORE_BRIDGE].[fingate_TsFour] (nolock) where reportType='STR'
 union
-select [reportId],id_,'NA' as relationFlag,batchId,reportType,transactionType,floor( amount) amount, 'NA' sender_name,'NA' as sender_acc,[customerName] reciever_name,accountNo as reciever_acc,'MUTUAL FUND' as source  
+select [reportId],id_,'NA' as relationFlag,batchId,reportType,transactionType,floor( amount) amount, 'NA' sender_name,'NA' as sender_acc,[customerName] reciever_name,accountNo as reciever_acc,'MUTUAL FUND' as category  ,'tsfive' as source
 from [FINCORE_BRIDGE].[fingate_TsFive] (nolock) where reportType='STR'
+union
+select [reportId],id_,'NA' as relationFlag,batchId,reportType,'NA' as transactionType,floor( amount) amount, 'NA' sender_name,'NA' as sender_acc,'NA' as reciever_name,'NA' as reciever_acc,'MUTUAL FUND' as category  ,'tssix' as source
+from [FINCORE_BRIDGE].[fingate_TsSix] (nolock) where reportType='STR'
 ),
 cte2 as(select cte0.[Fiu_Re_Id],[Re_Name],[fiuBatchId],cte1.* from cte0 inner join cte1 on cte0.id_=cte1.batchId)
 ,
@@ -2142,19 +1879,16 @@ cte3 as(select cte2.[reportId],cte2.relationFlag,cte2.batchId,cte2.reportType,ct
 inner join [FINCORE_BRIDGE].[fingate_Gos] (nolock) gs1 on cte2.[reportId]=gs1.[reportId]
 ),
 cte4 as (
-select firstName as Name,pan,[telephoneNumber],[mobileNumber],email,reportId,primaryAddressLine1 address,primaryPinCode pincode,'INP' as entity_source from [FINCORE_BRIDGE].[fingate_PersonDetail]
+select firstName as Name,pan,[telephoneNumber],[mobileNumber],email,reportId,primaryAddressLine1 address,primaryPinCode pincode,'INDIVIDUAL' as INPLPE,ucic from [FINCORE_BRIDGE].[fingate_PersonDetail]
 union
-select Name,pan,[telephoneNumber],[mobileNumber],[emailId],reportId,addressLine1 address,pinCode,'LPE' as entity_source from [FINCORE_BRIDGE].[fingate_EntityDetail]
+select Name,pan,[telephoneNumber],[mobileNumber],[emailId],reportId,addressLine1 address,pinCode,'ENTITY' as INPLPE,ucic from [FINCORE_BRIDGE].[fingate_EntityDetail]
 ),
 cte5 as (
-select cte3.*,cte4.Name,cte4.pan,cte4.telephoneNumber,cte4.mobileNumber,cte4.email,cte4.address,cte4.pincode,entity_source from cte3 inner join cte4 on cte3.reportId=cte4.reportId
-)
-select top 50 * from cte5
+select cte3.*,cte4.Name,cte4.pan,cte4.telephoneNumber,cte4.mobileNumber,cte4.email,cte4.address,cte4.pincode,INPLPE,ucic from cte3 inner join cte4 on cte3.reportId=cte4.reportId
+),
+cte6 as (select cte5.*,concat('A-',acc.accountNo) accountNumber,acc.personType,acc.nonCustomerName from cte5 inner join FINCORE_BRIDGE.fingate_AccountPerson acc on acc.ucic=cte5.ucic and acc.reportid=cte5.reportid)
+select top 50 * from cte6
 
-select top 50 * from [FINCORE_BRIDGE].[fingate_TsFive] where reportType='STR'
-
---select top 5 * from [FINCORE_BRIDGE].[fingate_PersonDetail]
---select top 5 * from [FINCORE_BRIDGE].[fingate_EntityDetail]
 
 -----------------------------------------------------------------------------------
 
@@ -2311,4 +2045,625 @@ def query_run(query,engine_,path_to_file, file_name,mode = 'a'):
         path = os.path.join(path_to_file,file_name)
         results.to_csv(path, index = False, mode = mode)
 
+----------------------------------------------------
+Run application in background
 
+jupyter nbconvert --execute --to notebook Fundflow_Hosted_File.ipynb
+-------------------------------------------------------
+Create index on multiple columns
+
+CREATE INDEX idx_brn_trn
+ON [FINCORE_BACKUP_CC].trftrn (batchid,rptsernum,[TRANSACTIONREFNUM]);
+
+--------------------------------------------------------
+Replace quotes from rows
+
+UPDATE [Finnet_1.0].[dbo].[RJ_MZ_apr23_election]
+SET [rptsernum]= REPLACE([rptsernum], '"', '')
+
+----------------------------------------------------------
+
+case when DEBITCREDIT ='C' then 'Credit' when DEBITCREDIT ='D' then 'Debit'
+else 'Not Categorized' end as DEBITCREDIT
+
+--------------------------------------------------------
+
+clean dump
+
+with cte1 as (select distinct recategory,b.fiureid,B.BATCHID,ENTITYNAME,
+REPORTTYPE, SUBSTRING(cast(b.batchid as varchar), 1, 4) as year_month
+from [FINCORE_BACKUP_CC].[BATCH] (nolock) b where b.fiureid in ('BASCB00076','BARRB00265')
+and b.BATCHID between 1804010000 and 2305319999
+and REPORTTYPE='CTR'
+and REPORTFORMATTYPE='ARF'
+and b.batchid not in ((select distinct originalbatchid from [FINCORE_BACKUP_CC].[BATCH]  
+union 
+select distinct batchid from [FINCORE_BACKUP_CC].[BATCH] b2 where  batchtype ='D'))),
+
+cte2 as(select distinct cte1.fiureid,cte1.batchid,atr.rptsernum,cte1.ENTITYNAME,cte1.year_month, 
+concat('A-',ACCOUNTNUM)accountNo,amount,count(amount) as monthly_transaction_counts,
+sum(amount) total_amount_monthly,
+case when DEBITCREDIT ='C' then 'Credit' when DEBITCREDIT ='D' then 'Debit'
+else 'Not Categorized' end as DEBITCREDIT from [FINCORE_BACKUP_CC].[ARFTRN] atr (nolock)
+inner join cte1 on cte1.batchid=atr.batchid
+and amount<>0
+group by cte1.fiureid,cte1.batchid,atr.rptsernum,cte1.year_month, concat('A-',ACCOUNTNUM),amount,DEBITCREDIT,cte1.ENTITYNAME),
+
+cte3 as (select distinct pan,personname,MOBILE,'arfinp' as source,OCCUPATION,cte2.* from [FINCORE_BACKUP_CC].[ARFINP] inp (nolock) 
+inner join cte2 on cte2.batchid=inp.BATCHID and cte2.rptsernum=inp.rptsernum and cte2.accountNo=concat('A-',inp.ACCOUNTNUM)
+where  RELATIONFLAG='A' and pan not in ('XXXXX0000X','AAAAA0000A','AAAAA1111A','AAAAA1234A','XXXXX0000X','XXXXX1111X','XXXXX1234X','ABCDE1234F','XXXXX9999X','AAAAA9999A')
+union
+select distinct pan,personname,MOBILE,'arflpe' as source,NATUREOFBUSINESS as OCCUPATION,cte2.* from [FINCORE_BACKUP_CC].[ARFLPE] lpe (nolock)
+inner join cte2 on cte2.batchid=lpe.BATCHID and cte2.rptsernum=lpe.rptsernum and cte2.accountNo=concat('A-',lpe.ACCOUNTNUM)
+where  RELATIONFLAG='A' and pan not in ('XXXXX0000X','AAAAA0000A','AAAAA1111A','AAAAA1234A','XXXXX0000X','XXXXX1111X','XXXXX1234X','ABCDE1234F','XXXXX9999X','AAAAA9999A')
+)
+select *,case when SUBSTRING(pan,4,1) ='P' then 'Individual' when SUBSTRING(pan,4,1) ='H' then 'HUF'
+when SUBSTRING(pan,4,1) ='F' then 'Firm' when SUBSTRING(pan,4,1) ='C' then 'Company' when SUBSTRING(pan,4,1) ='A' then 'Association of Person'
+when SUBSTRING(pan,4,1) ='B' then 'Body of Individual'
+else 'Not Categorized' end as pan_type from cte3
+
+-------------------------------------------------------------------------
+
+select concat('ID-',[fiuBatchId]) fiubatchid,[reportRefNo],r.batchid, r.id_ as reportid, b.id_,b.reportTypeName,
+reportId,[gosTextNarration] gos,[gosTag2] source_of_alert,r.status,r.id_ from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_Report](nolock) r
+left join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_BatchUpload](nolock) b on  b.id_ = r.batchId
+left join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_Gos] (nolock) gs on r.id_=gs.reportId
+where concat_ws('|',fiuBatchId,[reportRefNo]) in ()
+
+-----------------------------------------------------------------------------
+
+SELECT top 5 * INTO [Fincore_Bridge_DB].dbo.newtable FROM [Finnet_1.0].[FINCORE_BACKUP_CC].[ARFACC] WHERE ACCOUNTHOLDERTYPE='A';
+
+select cte2.*,cte1.REPORTFORMATTYPE,cte1.REPORTTYPE,cte1.ENTITYNAME,fiureid into [finnet_1.0].dbo.eft_jnkbank_dump from cte2 inner join cte1 on cte1.batchid=cte2.batchid
+
+--------------------------------------------------------------------------
+
+with cte1 as (
+	select b.batchId,fiuBatchID,r.id_, b.reportTypeName,
+	--SUBSTRING(fiuBatchID,1,8) as batchid_
+	--SUBSTRING(fiuBatchID,1,4) as yr ,
+	--SUBSTRING(fiuBatchID,5,2) as mon, 
+	SUBSTRING(fiuBatchID,3,4) as yr_mon
+	from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_BatchUpload](nolock) b 
+	join  [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_Report](nolock) r on  b.id_ = r.batchId
+	--join [DATAHUB_DB].[FIUMetaHub].[finnet_ReportingEntity] z (nolock) on b.reId = z.id_
+	where r.migrated_flag is null and  r.status=35
+	and b.reportTypeName in ('CTR','STR','CCR','NTR','CBWTR')
+	and SUBSTRING(fiuBatchID,3,4) in( '2305')
+ )
+ select yr_mon,reportTypeName, count(id_) 
+ from cte1
+ group by yr_mon,reportTypeName
+_____________________________________________________________________________________
+
+select reporttypeid ,count(1) from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_Report](nolock) r
+where r.migrated_flag is null and  r.status=35  and  substring( [fiuBatchId],1,8) between 20230501  and 20230531 
+group by reporttypeid
+_____________________________________________________________________________________
+Batch_count---
+
+with cte1 as (
+	select COUNT(distinct b.batchId)batch_count , b.reportTypeName,
+ 
+	SUBSTRING(fiuBatchID,3,4) as yr_mon
+	from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_BatchUpload](nolock) b 
+	join  [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_Report](nolock) r on  b.id_ = r.batchId
+	--join [DATAHUB_DB].[FIUMetaHub].[finnet_ReportingEntity] re (nolock) on b.reId = re.id_
+	where r.migrated_flag is null and  r.status=35 and re.active_=1
+	and b.reportTypeName in ('CTR','STR','CCR','NTR','CBWTR')
+	and substring( [fiuBatchId],1,8) between 20230501  and 20230531 
+	group by b.reportTypeName, SUBSTRING(fiuBatchID,3,4)
+ ),
+
+ cte2 as (select yr_mon,reportTypeName, 
+
+case when reportTypeName='STR' then batch_count  else 0 end as STR,                     
+case when reportTypeName='CTR' then batch_count  else 0 end as CTR,                     
+case when reportTypeName='NTR' then batch_count  else 0 end as NTR,                     
+case when reportTypeName='CBWTR' then batch_count  else 0 end as EFT,                    
+case when reportTypeName='CCR' then batch_count  else 0 end as CCR,  
+case when reportTypeName='BDU' then batch_count  else 0 end as BDU,
+case when reportTypeName is null then batch_count  else 0 end as NULLREPORT,
+batch_count as total_batch_count
+from cte1)
+select yr_mon, sum(STR) STR,sum(CTR) CTR,sum(NTR) NTR,sum(EFT) EFT,sum(CCR) CCR,sum(BDU) BDU ,sum(NULLREPORT) NULL_REPORT, sum(total_batch_count)total_batch_count 
+from cte2 c2 group by yr_mon 
+
+
+
+select distinct([reportTypeName]) FROM [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_BatchUpload](nolock)
+
+
+
+_________________________________________________________________________________
+
+3A- Total report counts across all RE's
+Report_Count--
+
+with cte1 as (
+	select count(distinct r.id_) report_count, b.reportTypeName,
+ 
+	SUBSTRING(fiuBatchID,3,4) as yr_mon
+	from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_BatchUpload](nolock) b 
+	join  [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_Report](nolock) r on  b.id_ = r.batchId
+	join [DATAHUB_DB].[FIUMetaHub].[finnet_ReportingEntity] re (nolock) on b.reId = re.id_
+	where r.migrated_flag is null and  r.status=35 and re.active_=1
+	and b.reportTypeName in ('CTR','STR','CCR','NTR','CBWTR','BDU')
+	and substring( [fiuBatchId],1,8) between 20230501  and 20230531 
+	group by b.reportTypeName,SUBSTRING(fiuBatchID,3,4) 
+ ),
+
+ cte2 as (select yr_mon,reportTypeName, 
+
+case when reportTypeName='STR' then report_count  else 0 end as STR,                     
+case when reportTypeName='CTR' then report_count  else 0 end as CTR,                     
+case when reportTypeName='NTR' then report_count  else 0 end as NTR,                     
+case when reportTypeName='CBWTR' then report_count  else 0 end as EFT,                    
+case when reportTypeName='CCR' then report_count  else 0 end as CCR,  
+case when reportTypeName='BDU' then report_count  else 0 end as BDU,
+case when reportTypeName is null then report_count  else 0 end as NULLREPORT,
+report_count as total_report_count
+from cte1)
+select yr_mon, sum(STR) STR,sum(CTR) CTR,sum(NTR) NTR,sum(EFT) EFT,sum(CCR) CCR,sum(BDU) BDU ,sum(NULLREPORT) NULL_REPORT, sum(total_report_count)total_report_count 
+from cte2 c2 group by yr_mon 
+
+_____________________________________________________________________________
+3B- RE wise Report count
+with cte1 as (
+	select coalesce([oldREId],[newREId]) as FIUREID,trim(upper([name])) as RE_NAME,count(distinct r.id_) report_count, b.reportTypeName
+ 
+
+	from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_BatchUpload](nolock) b 
+	join  [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_Report](nolock) r on  b.id_ = r.batchId
+	join [DATAHUB_DB].[FIUMetaHub].[finnet_ReportingEntity] re (nolock) on b.reId = re.id_
+	where r.migrated_flag is null and  r.status=35 and re.active_=1
+	and b.reportTypeName in ('CTR','STR','CCR','NTR','CBWTR','BDU')
+	and substring( [fiuBatchId],1,8) between 20230501  and 20230531 
+	group by coalesce([oldREId],[newREId]) ,trim(upper([name])),b.reportTypeName
+ ),
+
+ cte2 as (select FIUREID,RE_NAME,reportTypeName, 
+
+case when reportTypeName='STR' then report_count  else 0 end as STR,                     
+case when reportTypeName='CTR' then report_count  else 0 end as CTR,                     
+case when reportTypeName='NTR' then report_count  else 0 end as NTR,                     
+case when reportTypeName='CBWTR' then report_count  else 0 end as EFT,                    
+case when reportTypeName='CCR' then report_count  else 0 end as CCR,  
+case when reportTypeName='BDU' then report_count  else 0 end as BDU,
+case when reportTypeName is null then report_count  else 0 end as NULLREPORT,
+report_count as total_report_count
+from cte1)
+select FIUREID,RE_NAME, sum(STR) STR,sum(CTR) CTR,sum(NTR) NTR,sum(EFT) EFT,sum(CCR) CCR,sum(BDU) BDU ,sum(NULLREPORT) NULL_REPORT, sum(total_report_count)total_report_count 
+from cte2 c2 group by FIUREID,RE_NAME order by total_report_count  desc
+______________________________________________________________________________
+4- Category Wise reporting
+with cte1 as ( select count(distinct r.id_) report_count, b.reportTypeName, trim(upper([description])) Cat_Description, lob.[name] Cat_Name
+	from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_BatchUpload](nolock) b 
+	join  [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_Report](nolock) r on  b.id_ = r.batchId
+	join [DATAHUB_DB].[FIUMetaHub].[finnet_ReportingEntity] re (nolock) on b.reId = re.id_
+	left join [DATAHUB_DB].[FIUMetaHub].[finnet_LineOfBusiness] LOB ON LOB.id_ =re.[lineOfBusinessId] and re.active_=1 
+	where r.migrated_flag is null and  r.status=35
+	and b.reportTypeName in ('CTR','STR','CCR','NTR','CBWTR','BDU')
+	and substring( [fiuBatchId],1,8) between 20230501  and 20230531 
+	group by trim(upper([description])),lob.[name], b.reportTypeName),
+
+cte2 as (select Cat_Name,Cat_Description,reportTypeName, 
+
+case when reportTypeName='STR' then report_count  else 0 end as STR,                     
+case when reportTypeName='CTR' then report_count  else 0 end as CTR,                     
+case when reportTypeName='NTR' then report_count  else 0 end as NTR,                     
+case when reportTypeName='CBWTR' then report_count  else 0 end as EFT,                    
+case when reportTypeName='CCR' then report_count  else 0 end as CCR,  
+case when reportTypeName='BDU' then report_count  else 0 end as BDU,
+case when reportTypeName is null then report_count  else 0 end as NULLREPORT,
+report_count as total_report_count
+from cte1)
+
+select Cat_Name, Cat_Description ,sum(STR) STR,sum(CTR) CTR,sum(NTR) NTR,sum(EFT) EFT,sum(CCR) CCR,sum(BDU) BDU ,sum(NULLREPORT) NULL_REPORT, sum(total_report_count)total_report_count 
+from cte2 c2 group by Cat_Name,  Cat_Description order by total_report_count desc
+
+
+cte3 as ( select  Cat_Description, Cat_Name ,report_count, reportTypeName from cte1 c1 inner join cte2 c2 on c2.[lineOfBusinessId]= c1.reId)
+select * from cte3 
+___________________________________________________________________________
+7 Insufficient GOS < 500
+select coalesce([oldREId],[newREId]) as FIUREID,trim(upper([name])) as RE_NAME,count(distinct r.id_) report_count
+ 
+
+	from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_BatchUpload](nolock) b 
+	join  [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_Report](nolock) r on  b.id_ = r.batchId
+	join [DATAHUB_DB].[FIUMetaHub].[finnet_ReportingEntity] re (nolock) on b.reId = re.id_
+	inner join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_Gos] (nolock) gs on r.id_=gs.reportId
+	and r.migrated_flag is null and  r.status=35 and re.active_=1
+	and b.reportTypeName  = 'STR'  and len(gosTextNarration)  < 500
+	and   substring( [fiuBatchId],1,8) between 20230501  and 20230531
+	group by coalesce([oldREId],[newREId]), trim(upper([name]))
+_______________________________________________________________________________
+
+select coalesce([oldREId],[newREId]) as FIUREID,trim(upper([name])) as RE_NAME,count(distinct r.id_) report_count
+ 
+
+	from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_BatchUpload](nolock) b 
+	join  [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_Report](nolock) r on  b.id_ = r.batchId
+	join [DATAHUB_DB].[FIUMetaHub].[finnet_ReportingEntity] re (nolock) on b.reId = re.id_
+	inner join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_Gos] (nolock) gs on r.id_=gs.reportId
+	and r.migrated_flag is null and  r.status=35 and re.active_=1
+	and b.reportTypeName  = 'STR'  --and len(gosTextNarration)  500
+	and   substring( [fiuBatchId],1,8) between 20230501  and 20230531
+	group by coalesce([oldREId],[newREId]), trim(upper([name]))
+
+
+_________________________________________________________________________
+
+8- Count of Non-receipts (NTR)
+with cte1 as( select b.id_  ,r.id_ as reportid , coalesce([oldREId],[newREId]) as FIUREID,trim(upper([name])) as RE_NAME
+ 
+	
+	from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_BatchUpload](nolock) b 
+	join  [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_Report](nolock) r on  b.id_ = r.batchId
+	join [DATAHUB_DB].[FIUMetaHub].[finnet_ReportingEntity] re (nolock) on b.reId = re.id_
+	where r.migrated_flag is null and  r.status=35 and re.active_=1
+	and b.reportTypeName = 'NTR'
+	and substring( [fiuBatchId],1,8) between 20230501  and 20230531 ),
+
+cte2 as (SELECT Batchid, [transactionType]
+  FROM [Fincore_Bridge_DB].[FINCORE_BRIDGE].[fingate_TsOne]
+  where [transactionType]='Debit'
+  union 
+  SELECT Batchid, [transactionType]
+  FROM [Fincore_Bridge_DB].[FINCORE_BRIDGE].[fingate_TsTwo]
+  where [transactionType]='Debit'
+  union 
+  SELECT Batchid, [transactionType]
+  FROM [Fincore_Bridge_DB].[FINCORE_BRIDGE].[fingate_TsThree]
+  where [transactionType]='Debit'
+  union 
+  SELECT Batchid,[transactionType]
+  FROM [Fincore_Bridge_DB].[FINCORE_BRIDGE].[fingate_TsFour]
+  where [transactionType]='Debit'
+  union 
+  SELECT Batchid,[transactionType]
+  FROM [Fincore_Bridge_DB].[FINCORE_BRIDGE].[fingate_TsFive]
+  where [transactionType]='Debit'
+  union 
+  SELECT Batchid,[transactionType]
+  FROM [Fincore_Bridge_DB].[FINCORE_BRIDGE].[fingate_TsSeven]
+  where [transactionType]='Debit'
+  union 
+  SELECT Batchid,[transactionType]
+  FROM [Fincore_Bridge_DB].[FINCORE_BRIDGE].[fingate_TsNine]
+  where [transactionType]='Debit'
+  union 
+  SELECT Batchid,[transactionType]
+  FROM [Fincore_Bridge_DB].[FINCORE_BRIDGE].[fingate_TsEleven]
+  where [transactionType]='Debit'
+  union 
+  SELECT Batchid,[depositWithdrawal]
+  FROM [Fincore_Bridge_DB].[FINCORE_BRIDGE].[fingate_TcOne]
+  where [depositWithdrawal]='Deposit'
+  union 
+  SELECT Batchid,[depositeWithdrawl]
+  FROM [Fincore_Bridge_DB].[FINCORE_BRIDGE].[fingate_TcTwo]
+  where [depositeWithdrawl] ='Deposit')
+  
+  select FIUREID ,RE_NAME, count(distinct c1.reportid ) Non_receipts from cte1 c1 inner join cte2 c2 on c2.Batchid=c1.id_
+  group by FIUREID ,RE_NAME order by Non_receipts desc
+____________________________________________________________________
+9-  NTR Below threshold
+
+with cte1 as( select  b.id_  ,r.id_ report_count, coalesce([oldREId],[newREId]) as FIUREID,trim(upper([name])) as RE_NAME
+ 
+	
+	from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_BatchUpload](nolock) b 
+	join  [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_Report](nolock) r on  b.id_ = r.batchId
+	join [DATAHUB_DB].[FIUMetaHub].[finnet_ReportingEntity] re (nolock) on b.reId = re.id_
+	where r.migrated_flag is null and  r.status=35 and re.active_=1
+	and b.reportTypeName = 'NTR'
+	and substring( [fiuBatchId],1,8) between 20230501  and 20230518
+	 ),
+
+	cte2 as (SELECT  reportid, [amount] from (select reportid, floor([amount])[amount]
+  FROM [Fincore_Bridge_DB].[FINCORE_BRIDGE].[fingate_TsOne]
+  where floor([amount]) <1000000
+  union 
+  SELECT  reportid, floor([amount])[amount]
+  FROM [Fincore_Bridge_DB].[FINCORE_BRIDGE].[fingate_TsTwo]
+  where floor([amount]) <1000000
+  union 
+  SELECT  reportid, floor([transactionAmount])  [amount]
+  FROM [Fincore_Bridge_DB].[FINCORE_BRIDGE].[fingate_TsThree]
+  where floor([transactionAmount]) <1000000
+  union 
+  SELECT  reportid, floor([transactionAmount]) [amount]
+  FROM [Fincore_Bridge_DB].[FINCORE_BRIDGE].[fingate_TsFour]
+  where floor([transactionAmount]) <1000000
+  union 
+  SELECT  reportid,floor([amount])[amount]
+  FROM [Fincore_Bridge_DB].[FINCORE_BRIDGE].[fingate_TsFive]
+  where floor([amount]) <1000000
+  union 
+  SELECT  reportid,floor([amount])[amount]
+  FROM [Fincore_Bridge_DB].[FINCORE_BRIDGE].[fingate_TsSeven]
+  where floor([amount]) <1000000
+  union 
+  SELECT  reportid,floor([amount])[amount]
+  FROM [Fincore_Bridge_DB].[FINCORE_BRIDGE].[fingate_TsNine]
+  where floor([amount]) <1000000
+  union 
+  SELECT  reportid, floor([amountInInr]) [amount]
+  FROM [Fincore_Bridge_DB].[FINCORE_BRIDGE].[fingate_TsEleven]
+  where floor([amountInInr]) <1000000
+  union 
+  SELECT   reportid,floor([transactionAmount]) [amount]
+  FROM [Fincore_Bridge_DB].[FINCORE_BRIDGE].[fingate_TcOne]
+  where floor([transactionAmount]) <1000000
+  union 
+  SELECT  reportid,floor([amount])[amount]
+  FROM [Fincore_Bridge_DB].[FINCORE_BRIDGE].[fingate_TcTwo]
+  where floor([amount]) <1000000)z)
+
+  
+  select FIUREID ,RE_NAME, count( report_count)report_count, count(distinct c2.reportid ) below_thresholds from cte1 c1 inner join cte2 c2 on c2.reportid=c1.id_
+  group by FIUREID ,RE_NAME order by below_thresholds desc
+
+
+-----------------------------------------------------------------------------------------------
+Query 2 For Finnet 2.0 help desk
+
+select distinct coalesce([oldREId],[newREId]) as fiureid,trim(upper(re.name)) as entityname,concat('ID-',cast([fiuBatchId] as varchar)) fiubatchid,r.reportRefNo,
+CONCAT_WS('|',concat('ID-',[fiuBatchId]),r.reportRefNo) brn, pd.[pan],gosTextNarration gos,[gosTag2] source_of_alert,
+concat(pd.firstName,' ',pd.middleName,' ',pd.lastName) as personname,
+pd.primaryAddressLine1 as address,pin.pinCodeNumber as Pincode,kyc.profession as occupation,nn.title as nationality,
+pd.telephoneNumber as telephone, pd.mobileNumber as mobile, pd.email,kyc.entityName as mainpersonname,
+concat('A-',ad.accountNumber) as accountnumber,ifsc, adr.pinCode as Branch_PinCode,b.reportTypeName
+from  [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_BatchUpload](nolock) b
+inner join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_Report](nolock) r on b.id_ = r.batchId
+inner join [DATAHUB_DB].[FIUMetaHub].[finnet_ReportingEntity] re (nolock) on b.[reId] = re.id_
+inner join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_Gos] (nolock) gs on r.id_=gs.reportId
+inner join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_AccountDetail] ad on r.Id_=ad.reportid
+inner join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_KycSummary] kyc on r.id_=kyc.reportId
+inner join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_PersonDetail] pd on pd.reportId=r.id_
+--inner join [Fincore_Bridge_DB].[FINCORE_BRIDGE].[fingate_AccountPerson] ap on ap.id_ = r.id_
+--inner join [DATAHUB_DB].[FIUMetaHub].[finnet_AcHolderType] actype on ap.relationTypeId = actype.id_
+inner join [DATAHUB_DB].[FIUMetaHub].[finnet_PinCode] pin on pin.id_ = pd.primaryPinCode
+inner join [DATAHUB_DB].[FIUMetaHub].[finnet_Nationality] nn on nn.id_=pd.nationality
+inner join [DATAHUB_DB].[FIUMetaHub].[finnet_ReBranch] reb on ad.branchCode=reb.branchId
+inner join [DATAHUB_DB].[FIUMetaHub].[finnet_Address] adr on reb.id_ = adr.parentid and adr.parentclass = 'REBranch' 
+and r.migrated_flag is null and re.active_=1
+and fiuBatchId in ('2023070610156154','2023070710138484')-- '202307%'
+--where CONCAT_WS('|',[fiuBatchId],r.reportRefNo) =  ('2023070610156154') --enter fiubatchid|reportrefno here --2023051100119974
+--2023070610156154
+--and trim(kyc.entityName) like ('Jyotisha%')
+
+
+Query 1 For Finnet 2.0 help desk
+
+with cte1 as (
+select distinct coalesce([oldREId],[newREId]) as fiureid,trim(upper([name])) as entityname,concat('ID-',cast([fiuBatchId] as varchar)) fiubatchid,
+r.[reportRefNo],concat('ID-',cast([fiuBatchId] as varchar),'|',cast(reportrefno as varchar)) as brn,gosTextNarration gos,[gosTag2] source_of_alert,kyc.entityName as mainpersonname,b.reportTypeName
+from  [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_BatchUpload](nolock) b
+inner join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_Report](nolock) r on b.id_ = r.batchId
+inner join [DATAHUB_DB].[FIUMetaHub].[finnet_ReportingEntity] re (nolock) on b.[reId] = re.id_
+inner join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_Gos] (nolock) gs on r.id_=gs.reportId
+inner join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_KycSummary] kyc on r.id_=kyc.reportId
+and r.migrated_flag is null and re.active_=1 and kyc.primaryEntity = 'Yes'
+
+where CONCAT_WS('|',[fiuBatchId],r.reportRefNo) in ()
+)
+
+select * from cte1
+
+
+-----------------------------------------------------------------
+
+sumit ji JNK bank details concat pan
+
+with cte1 as (select distinct recategory,b.fiureid, entityname,B.BATCHID,R.RPTSERNUM,
+REPORTTYPE,MAINPERSONNAME,SOURCEOFALERT,SUBSTRING(cast(b.batchid as varchar), 1, 4) as year_month
+from [FINCORE_BACKUP_CC].[BATCH] (nolock) b
+inner join [FINCORE_BACKUP_CC].[REPORT](nolock) r
+on b.batchid=r.batchid where b.fiureid in ('BASCB00076','BARRB00265')
+and b.BATCHID between 1804010000 and 2305319999
+and REPORTTYPE='CTR'
+and REPORTFORMATTYPE='ARF'
+and b.batchid not in ((select distinct originalbatchid from [FINCORE_BACKUP_CC].[BATCH]  
+union 
+select distinct batchid from [FINCORE_BACKUP_CC].[BATCH] b2 where  batchtype ='D')))
+,
+cte2 as(select cte1.*,concat('A-',ACCOUNTNUM)accountNo,amount,sum(amount) as total_amount,count(amount) as counts,
+case when DEBITCREDIT ='C' then 'Credit' when DEBITCREDIT ='D' then 'Debit' else 'Not Categorized'
+end as debitcredit
+from [FINCORE_BACKUP_CC].[ARFTRN] atr (nolock) 
+inner join cte1 on cte1.batchid=atr.batchid and cte1.rptsernum=atr.rptsernum
+where atr.batchid between 1804010000 and 2305319999
+group by concat('A-',ACCOUNTNUM),amount,debitcredit,recategory,cte1.fiureid,entityname,cte1.batchid,cte1.rptsernum
+,cte1.REPORTTYPE,cte1.MAINPERSONNAME,cte1.SOURCEOFALERT,cte1.year_month
+),
+cte3 as (select distinct pan,personname,MOBILE,'arfinp' as source,cte2.* from [FINCORE_BACKUP_CC].[ARFINP] inp (nolock) 
+inner join cte2 on cte2.batchid=inp.BATCHID and cte2.rptsernum=inp.rptsernum
+where inp.batchid between 1804010000 and 2305319999 and RELATIONFLAG='A'
+union
+select distinct pan,personname,MOBILE,'arflpe' as source,cte2.* from [FINCORE_BACKUP_CC].[ARFLPE] lpe (nolock)
+inner join cte2 on cte2.batchid=lpe.BATCHID and cte2.rptsernum=lpe.rptsernum
+where lpe.batchid between 1804010000 and 2305319999 and RELATIONFLAG='A'
+)
+select top 20 *,SUBSTRING(pan,4,1) as pan_type from cte3 
+
+----------------------------------------------------------------------------------------
+
+sumit ji JNK bank details concat pan
+
+with cte1 as
+(
+select distinct batchid,REPORTFORMATTYPE,REPORTTYPE,lower(ENTITYNAME) as entityname,FIUREID from [FINCORE_BACKUP_CC].[BATCH]
+where batchid between 1804010000 and 2305319999
+--and REPORTTYPE<>'CTR'
+and fiureid in ('BARRB00265','BASCB00076')
+and batchid not in (select distinct originalbatchid from [FINCORE_BACKUP_CC].[BATCH]  union select distinct batchid from [FINCORE_BACKUP_CC].[BATCH] b2 where  batchtype ='D') 
+),
+
+cte2 as
+(
+select pan,batchid,rptsernum,RELATIONFLAG, mobile,email, COMMADDRESS,OCCUPATION,PERSONNAME,concat('A-',ACCOUNTNUM) as account_num from [FINCORE_BACKUP_CC].[ARFINP] --where RELATIONFLAG='A'
+where batchid between 1804010000 and 2305319999 and pan is not null
+union
+select pan,batchid,rptsernum,RELATIONFLAG,mobile,email, COMMADDRESS,NATUREOFBUSINESS,PERSONNAME,concat('A-',ACCOUNTNUM) as account_num from [FINCORE_BACKUP_CC].[ARFLPE] --where RELATIONFLAG='A'
+where batchid between 1804010000 and 2305319999 and pan is not null
+union
+select pan,batchid,rptsernum,INSTRELATIONFLAG,MOBILE,EMAIL,ADDRESS as COMMADDRESS,OCCUPATION,CUSTOMERNAME as PERSONNAME,concat('A-',ACCOUNTNUM) as account_num from [FINCORE_BACKUP_CC].[TRFTRN] 
+where batchid between 1804010000 and 2305319999 and pan is not null
+)
+
+select cte2.*,cte1.REPORTFORMATTYPE,cte1.REPORTTYPE,cte1.ENTITYNAME,fiureid from cte2 inner join cte1 on cte1.batchid=cte2.batchid
+
+----------------------------------------------------------------------------------------
+
+PAN based reporttype grouping and count
+
+with report_count as (select pan, sum(case when reporttype='CTR' then cc end ) CTR,
+sum(case when reporttype='STR' then cc end ) STR,
+sum(case when reporttype='EFT' then cc end ) EFT,
+sum(case when reporttype='NTR' then cc end ) NTR,
+sum(cc) total from(
+select pan, reporttype, count( distinct batchid||rptsernum)cc from jnkbank.all_pan_data
+group by pan,reporttype)z
+group by pan
+order by total desc),
+
+pan_details as (select pan, string_agg(distinct personname,',')personname, string_agg(distinct mobile,',')mobile, 
+string_agg(distinct email,',')email, string_agg(distinct occupation,',')occupation
+from  jnkbank.all_pan_data
+group by pan) 
+
+select pan,ctr, str, eft,ntr,total,substring(personname,1,4000)personname,mobile,substring(email,1,4000)email,substring(occupation,1,4000)occupation from(
+select r.*, personname,mobile,email,occupation from report_count r left join pan_details p on r.pan=p.pan)zzz
+order by total desc
+
+-------------------------------------------------------------------------------------
+copy csv file on server 172.16.22.15 from winscp
+
+Username:appadmin1
+Password:FinNet@2021
+use putty "\copy jnkbank.all_pan_data FROM /data1/pgsql_data/pan_inplpe_dump_220923.csv delimiter ',' csv header"
+------------------------------------------------------------------------------------
+Check for column names
+
+SELECT c.name AS ColName, t.name AS TableName
+FROM sys.columns c
+    JOIN sys.tables t ON c.object_id = t.object_id
+WHERE c.name LIKE 'pan%';
+
+-------------------------------------------------------------------------------
+
+SELECT distinct fc.caseid,fc.approvalsubmitdate as dissemination_date,fc.batchid,fc.reportrequestserialnum,fc.fiureidagencyid,fc.recategory,fc.feedbackpriority,fc.casepriority,fc.mainpersonname  FROM [dbo].[feedback_data] fb inner join [dbo].[fincase_final] fc on fb.caseid=fc.caseid
+where caseaction='D' and casestatus in ('D','E') and fb.isinformationuseful='1' and TRY_CONVERT(DATETIME,FC.approvalsubmitdate) < '2023-06-30 00:00:00.000'-- AND '2018-04-01 00:00:00.000'
+
+-----------------------------------------------------------------------------
+For CTR,STR,NTR Finnet 1.0
+
+with cte1 as
+(
+select distinct ENTITYNAME as REName,fiureid,REPORTFORMATTYPE,REPORTTYPE,r.batchid,r.RPTSERNUM,r.GROUNDSOFSUSP,r.DETAILSOFINVESTIGATIONS,r.MAINPERSONNAME,r.SOURCEOFALERT,
+SUBSTRING(cast(r.batchid as varchar),1,2) AS yearofreport,SUBSTRING(cast(r.batchid as varchar),3,2) AS monthofreport
+from [FINCORE_BACKUP_CC].[BATCH] b inner join [FINCORE_BACKUP_CC].[REPORT] r on b.batchid=r.batchid
+where b.batchid not in (select distinct originalbatchid from [FINCORE_BACKUP_CC].[BATCH]  union select distinct batchid from [FINCORE_BACKUP_CC].[BATCH] b2 where  batchtype ='D')
+and CONCAT_WS('|',r.batchid,rptsernum) not in (select CONCAT_WS('|',iso.batchid,iso.reportserialnum) from [dbo].[isolated] iso)
+--and CONCAT_WS('|',r.batchid,rptsernum) in ()
+and b.batchid>1804010000
+),
+
+cte2 as
+(
+select pan,batchid,rptsernum,PERSONNAME,COMMADDRESS,COMMCITY,COMMPINCODE,RELATIONFLAG,MOBILE,IDENTIFICATIONNUMBER,OCCUPATION,NATIONALITY from [FINCORE_BACKUP_CC].[ARFINP] 
+where batchid in (select distinct batchid from cte1)
+--where pan='AABCZ5002H'
+--where trim(upper(PERSONNAME)) like ('%Central European University%')
+union
+select pan,batchid,RPTSERNUM,PERSONNAME,COMMADDRESS,COMMCITY,COMMPINCODE,RELATIONFLAG,MOBILE,'NA' as IDENTIFICATIONNUMBER,NATUREOFBUSINESS as occupation,'NA' as nationality from [FINCORE_BACKUP_CC].[ARFlpe] 
+where batchid in (select distinct batchid from cte1)
+--where pan='AABCZ5002H'
+--where trim(upper(PERSONNAME)) like ('%Central European University%')
+union
+select pan,batchid,rptsernum,CUSTOMERNAME,ADDRESS,CITY,PINCODE,'NA' as relationflag,MOBILE,'NA' as IDENTIFICATIONNUMBER,OCCUPATION,NATIONALITY from [FINCORE_BACKUP_CC].[TRFTRN]
+where batchid in (select distinct batchid from cte1)
+),
+cte3 as 
+(
+select batchid,rptsernum,DEBITCREDIT,amount from [FINCORE_BACKUP_CC].[ARFTRN] where batchid in (select distinct batchid from cte1)
+--union
+--select batchid,rptsernum,TRANSACTIONTYPE,AMOUNTRUPEES from [FINCORE_BACKUP_CC].[trftrn] where batchid in (select distinct batchid from cte1)
+),
+
+cte4 as 
+(
+select batchid,rptsernum,concat('A-',ACCOUNTNUM) as account,BRANCHEMAIL,ADDRESS as branch_address,city as branch_city from [FINCORE_BACKUP_CC].[ARFBRC]
+where batchid in (select distinct batchid from cte1)
+--and concat('A-',ACCOUNTNUM) in ()
+)
+
+select * from 
+(
+select c1.BATCHID,c1.RPTSERNUM,c1.REName,c1.FIUREID,c1.REPORTFORMATTYPE,c1.REPORTTYPE,c1.GROUNDSOFSUSP,c1.DETAILSOFINVESTIGATIONS,c1.MAINPERSONNAME,c1.SOURCEOFALERT,
+c1.yearofreport,c1.monthofreport,
+c2.pan,c2.PERSONNAME,c2.COMMADDRESS,c2.COMMCITY,c2.COMMPINCODE,c2.RELATIONFLAG,c2.MOBILE,c2.IDENTIFICATIONNUMBER,c2.OCCUPATION,c2.NATIONALITY,
+c3.DEBITCREDIT,c3.AMOUNT,
+c4.account,c4.BRANCHEMAIL,c4.branch_address,c4.branch_city from cte1 c1 
+inner join cte2 c2 on c1.batchid=c2.batchid and c1.RPTSERNUM=c2.RPTSERNUM
+inner join cte3 c3 on c1.batchid=c3.batchid and c3.RPTSERNUM=c1.RPTSERNUM
+inner join cte4 c4 on c1.batchid=c4.batchid and c1.rptsernum=c4.rptsernum
+)z
+
+--------------------------------------------------------------------------------
+
+with cte1 as(
+select distinct ENTITYNAME as REName,fiureid,REPORTFORMATTYPE,REPORTTYPE,r.batchid,r.RPTSERNUM,r.GROUNDSOFSUSP,r.DETAILSOFINVESTIGATIONS,r.MAINPERSONNAME,
+SUBSTRING(cast(r.batchid as varchar),1,2) AS yearofreport,SUBSTRING(cast(r.batchid as varchar),3,2) AS monthofreport
+from [FINCORE_BACKUP_CC].[BATCH] b inner join [FINCORE_BACKUP_CC].[REPORT] r on b.batchid=r.batchid
+where b.batchid not in (select distinct originalbatchid from [FINCORE_BACKUP_CC].[BATCH]  union select distinct batchid from [FINCORE_BACKUP_CC].[BATCH] b2 where  batchtype ='D') 
+and CONCAT_WS('|',r.batchid,rptsernum) in ('2102229895|304078', '2110124710|446125', '2206301672|7', '2004048362|16001', '2208251397|327821', '2207213976|5', '2209208103|1'))
+
+select * from (select c1.REName,c1.FIUREID,c1.REPORTFORMATTYPE,c1.REPORTTYPE,tr.* from [FINCORE_BACKUP_CC].[TRFTRN] tr inner join cte1 c1 on tr.batchid=c1.BATCHID)z
+
+-------------------------------------------------------------------------------
+
+=IF(MONTH(A2)<4,YEAR(A2)-1 & "-" & YEAR(A2),YEAR(A2) & "-" & YEAR(A2)+1)
+
+------------------------------------------------------------------------------
+
+SELECT DISTINCT fiureid, entityname, fiubatchid, reportrefno, brn, gos, source_of_alert, mainpersonname, entitytype, profession, status,
+regexp_matches(upper(TRIM(BOTH FROM gos)),'RBI|09.05.2023|09-05-2023|09TH MAY 2023|MAY 09, 2023|09/05/2023|9-5-23' ,'ig'::text) AS regexp_matches
+FROM str_prioritization3.str_rajat_2 
+
+------------------------------------------------------------------------------
+
+FINNET 2.0 dipto query
+
+with cte1 as ( select distinct id_,batchid, fiuBatchId,reportRefNo,reportTypeFlag 
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_Report] where migrated_flag is null and fiuBatchId in ('2023070610156154','2023070710138484','2023061000157333')),
+
+cte2 as (
+select batchid,pd.reportid, pd.ucic, PAN, concat(firstname,' ', middlename,' ',lastname) personname, 
+pd.primaryAddressLine1 as address,primaryPinCode as person_Pincode , pd.nationality , pd.telephoneNumber as telephone, pd.mobileNumber as mobile, email from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_PersonDetail] (nolock) pd 
+where pd.reportid in (select distinct id_ from cte1)  
+    union
+select batchid, ed.reportid, ed.ucic, PAN, ed.name as personname , ed.addressLine1 as address, pinCode as person_Pincode ,ed.regCountry as nationality, telephoneNumber, mobileNumber, emailId
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_EntityDetail] (nolock) ed where ed.reportid in (select distinct id_ from cte1)),
+
+cte3 as ( select reportid, ucic  from( select reportid, ucic, count(distinct pan) pan_count from cte2 group by reportid, ucic)z where pan_count =1),
+
+cte4 as (select * from cte2 where concat(reportid, ucic) in (select concat(reportid, ucic) from cte3))
+
+select distinct coalesce([oldREId],[newREId]) as fiureid,trim(upper(re.name)) as entityname,concat('ID-',cast([fiuBatchId] as varchar)) fiubatchid,r.reportRefNo,
+CONCAT_WS('|',concat('ID-',[fiuBatchId]),r.reportRefNo) brn,pincode, state_,ifsc, cte4.reportid, cte4.PAN,personname, address,person_Pincode,nationality,telephone,mobile,email,
+reportTypeFlag,  gosTextNarration gos,[gosTag2] source_of_alert,kyc.entityName as mainpersonname from cte1 r
+inner join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_BatchUpload] b on b.id_ = r.batchId
+inner join [DATAHUB_DB].[FIUMetaHub].[finnet_ReportingEntity] re (nolock) on b.[reId] = re.id_
+inner join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_AccountDetail] ad on r.Id_=ad.reportid
+inner join [DATAHUB_DB].[FIUMetaHub].[finnet_ReBranch] reb on ad.branchCode=reb.branchId
+inner join [DATAHUB_DB].[FIUMetaHub].[finnet_Address] adr on reb.id_ = adr.parentid and adr.parentclass = 'REBranch' and re.active_=1
+inner join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_AccountPerson] ap on ap.accountNo=ad.accountNumber and ap.reportid=ad.reportId 
+inner join  cte4 on cte4.reportid=ap.reportid and cte4.ucic=ap.ucic 
+left join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_Gos] (nolock) gs on r.id_=gs.reportId
+left join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_KycSummary] kyc on r.id_=kyc.reportId
+--left join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_Gos] (nolock) gs on r.id_=gs.reportId
+--where fiuBatchId in ('2023070610156154','2023070710138484','2023061000157333')
