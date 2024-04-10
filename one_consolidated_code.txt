@@ -1,0 +1,384 @@
+with table1 as (
+
+select final_table.Re_Id,frt.typeName as Report_Type,final_table.reTypeId,final_table.report_count,final_table.batch_count,final_table.count_of_business
+from
+(
+select xyz.Re_Id,xyz.Report_Type_Id,xyz.report_count,xyz.batch_count,xyz.reTypeId,lob.count_of_business
+from
+(
+select abc.Re_Id,abc.Report_Type_Id,abc.report_count,abc.batch_count,b.reTypeId
+from 
+(
+select 
+temp.Re_Id ,temp.Report_Type_Id,
+count(distinct(Report)) as report_count,
+count(distinct(batch)) as batch_count
+
+from
+
+(select 
+Re_Id, Report_Type_Id,
+(Report_Id|Batch_Id) as Report,
+(Batch_Id) as Batch
+from [FINCORE_DB].[Fincore].[Organization_Master_Cluster_Fingate_Report] as FCOMCFR
+
+union 
+
+select 
+Re_Id,Report_Type_Id,
+(Report_Id|Batch_Id)  as Report,
+(Batch_Id) as Batch
+from [FINCORE_DB].[Fincore].[person_Master_Cluster_Fingate_Report] as FCPMCFR
+) temp
+
+group by  re_id,Report_Type_Id )abc
+left join 
+[FINCORE_DB].[Fincore_Analytics].[finnet_ReportingEntity] b
+on abc.Re_Id=b.NewREId ) xyz
+left join
+(
+select newREId,count(distinct(lineofBusinessid)) as count_of_business
+from
+fingate_db.finnet.finnet_ReportingEntity
+group by newREId) lob 
+on xyz.Re_Id=lob.newreid )final_table
+left join
+[FINCORE_DB].[Fincore_Analytics].[finnet_ReportType] frt
+on
+final_table.Report_Type_Id=frt.id_
+),
+table2 as (
+select 
+sum(Sum_of_Amount) as Total_Amount,final_table.Re_id,final_table.Report_Type
+from
+(
+select 
+sum(a.transactionamount) as Sum_of_Amount,b.reid as Re_Id ,cast(b.reporttype as varchar) as Report_Type
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].fingate_TcOne a left join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchid=b.batchid
+group by b.reid,b.reporttype
+union all
+select 
+sum(a.amount) as Sum_of_Amount,b.reid as Re_Id ,cast(b.reporttype as varchar) as Report_Type
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].fingate_TcTwo a left join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchid=b.batchid
+group by b.reid,b.reporttype
+union all
+select 
+sum(a.amount) as Sum_of_Amount,b.reid as Re_Id ,cast(b.reporttype as varchar) as Report_Type
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].fingate_TcThree a left join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchid=b.batchid
+group by b.reid,b.reporttype
+union all
+select 
+sum(a.transactionAmount) as Sum_of_Amount,b.reid as Re_Id ,cast(b.reporttype as varchar) as Report_Type
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].fingate_TsFour a left join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchid=b.batchid
+group by b.reid,b.reporttype
+union all
+select
+sum(a.amount) as Sum_of_Amount,b.reid as Re_Id ,cast(b.reporttype as varchar) as Report_Type
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].fingate_Tsone a left join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchid=b.batchid
+group by b.reid,b.reporttype
+union all
+select
+sum(a.amount) as Sum_of_Amount,b.reid as Re_Id ,cast(b.reporttype as varchar) as Report_Type
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].fingate_TsTwo a left join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchid=b.batchid
+group by b.reid,b.reporttype
+union all
+select
+sum(a.transactionAmount) as Sum_of_Amount,b.reid as Re_Id ,cast(b.reporttype as varchar) as Report_Type
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].fingate_TsThree a left join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchid=b.batchid
+group by b.reid,b.reporttype
+union all
+select
+sum(a.amount) as Sum_of_Amount,b.reid as Re_Id ,cast(b.reporttype as varchar) as Report_Type
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].fingate_TsFive a left join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchid=b.batchid
+group by b.reid,b.reporttype
+union all
+select
+sum(a.amount) as Sum_of_Amount,b.reid as Re_Id ,cast(b.reporttype as varchar) as Report_Type
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].fingate_TsSeven a left join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchid=b.batchid
+group by b.reid,b.reporttype
+union all
+select
+sum(a.amount) as Sum_of_Amount,b.reid as Re_Id ,cast(b.reporttype as varchar) as Report_Type
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].fingate_TsEight a left join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchid=b.batchid
+group by b.reid,b.reporttype
+union all
+select
+sum(a.amount) as Sum_of_Amount,b.reid as Re_Id ,cast(b.reporttype as varchar) as Report_Type
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].fingate_TsTen a left join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchid=b.batchid
+group by b.reid,b.reporttype
+union all
+select
+sum(a.amount) as Sum_of_Amount,b.reid as Re_Id ,cast(b.reporttype as varchar) as Report_Type
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].fingate_TsTwelve a left join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchid=b.batchid
+group by b.reid,b.reporttype
+union all
+select
+sum(a.amount) as Sum_of_Amount,b.reid as Re_Id ,cast(b.reporttype as varchar) as Report_Type
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].fingate_TsNine a left join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchid=b.batchid
+group by b.reid,b.reporttype
+union all
+select
+sum(a.amountInInr) as Sum_of_Amount,b.reid as Re_Id ,cast(b.reporttype as varchar) as Report_Type
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].fingate_TsEleven a left join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchid=b.batchid
+group by b.reid,b.reporttype
+union all
+select ptr.Sum_of_Amount,ptr.Re_Id,'PTR' as Report_Type
+from
+(
+select 
+sum(a.amount) as Sum_of_Amount,b.reid as Re_Id 
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_PTR] a 
+left join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchid=b.batchid
+group by b.reid ) ptr
+union all
+select
+sum(a.amount) as Sum_of_Amount,b.reid as Re_Id ,cast(b.reporttype as varchar) as Report_Type
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].fingate_Ntr a left join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchid=b.batchid
+group by b.reid,b.reporttype
+union all
+select cbw.Sum_of_Amount,cbw.Re_Id,'CBWTR' as Report_Type
+from
+(
+select 
+sum(a.amountInInr) as Sum_of_Amount,b.reid as Re_Id 
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_CbwtrBank] a 
+left join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchid=b.batchid
+group by b.reid ) cbw
+union all
+select CasinoCbwtr.Sum_of_Amount,CasinoCbwtr.Re_Id,'CBWTR' as Report_Type
+from
+(
+select 
+sum(a.amount) as Sum_of_Amount,b.reid as Re_Id 
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_CasinoCbwtr] a 
+left join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchid=b.batchid
+group by b.reid ) CasinoCbwtr
+UNION all
+select
+sum(a.amountInInr) as Sum_of_Amount,b.reid as Re_Id ,cast(b.reporttype as varchar) as Report_Type
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].fingate_Mtss a left join [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchid=b.batchid
+group by b.reid,b.reporttype ) final_table
+group by final_table.Re_id,final_table.Report_type
+),
+table3 as (
+select final_table.reid,sum(No_of_KYC) as Total_KYC
+from(
+select b.reId,count(distinct(a.id_)) as No_Of_KYC
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_PersonDetail] a
+inner join
+[FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchId=b.batchId
+group by b.reId
+union all
+select b.reId,count(distinct(a.id_)) as No_Of_KYC
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_EntityDetail] a
+inner join
+[FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchId=b.batchId
+group by b.reId
+union all
+select b.reId,count(distinct(a.id_)) as No_Of_KYC
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_TcOne] a
+inner join
+[FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchId=b.batchId
+group by b.reId
+union all
+select b.reId,count(distinct(a.id_)) as No_Of_KYC
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_TcTwo] a
+inner join
+[FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchId=b.batchId
+group by b.reId
+union all
+select b.reId,count(distinct(a.id_)) as No_Of_KYC
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_TsTen] a
+inner join
+[FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchId=b.batchId
+group by b.reId
+union all
+select b.reId,count(distinct(a.id_)) as No_Of_KYC
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_TsTwo] a
+inner join
+[FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchId=b.batchId
+group by b.reId
+union all
+select b.reId,count(distinct(a.id_)) as No_Of_KYC
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_TsThree] a
+inner join
+[FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchId=b.batchId
+group by b.reId
+union all
+select b.reId,count(distinct(a.id_)) as No_Of_KYC
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_SimpleKycInd] a
+inner join
+[FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchId=b.batchId
+group by b.reId
+union all
+select b.reId,count(distinct(a.id_)) as No_Of_KYC
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_SimpleKycNonInd] a
+inner join
+[FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchId=b.batchId
+group by b.reId
+union all
+select b.reId,count(distinct(a.id_)) as No_Of_KYC
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_TsFour] a
+inner join
+[FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchId=b.batchId
+group by b.reId
+union all
+select b.reId,count(distinct(a.id_)) as No_Of_KYC
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_TsFive] a
+inner join
+[FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchId=b.batchId
+group by b.reId
+union all
+select b.reId,count(distinct(a.id_)) as No_Of_KYC
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_TsSeven] a
+inner join
+[FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchId=b.batchId
+group by b.reId
+union all
+select b.reId,count(distinct(a.id_)) as No_Of_KYC
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_TsEight] a
+inner join
+[FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchId=b.batchId
+group by b.reId
+union all
+select b.reId,count(distinct(a.id_)) as No_Of_KYC
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_TsNine] a
+inner join
+[FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchId=b.batchId
+group by b.reId
+union all
+select b.reId,count(distinct(a.id_)) as No_Of_KYC
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_Mtss] a
+inner join
+[FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchId=b.batchId
+group by b.reId
+union all
+select b.reId,count(distinct(a.id_)) as No_Of_KYC
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_TsEleven] a
+inner join
+[FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchId=b.batchId
+group by b.reId
+union all
+select b.reId,count(distinct(a.id_)) as No_Of_KYC
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_TsTwelve] a
+inner join
+[FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchId=b.batchId
+group by b.reId
+union all
+select b.reId,count(distinct(a.id_)) as No_Of_KYC
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_TcThree] a
+inner join
+[FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchId=b.batchId
+group by b.reId
+union all
+select b.reId,count(distinct(a.id_)) as No_Of_KYC
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_TsTen] a
+inner join
+[FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchId=b.batchId
+group by b.reId
+union all
+select b.reId,count(distinct(a.id_)) as No_Of_KYC
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_CbwtrBank] a
+inner join
+[FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchId=b.batchId
+group by b.reId
+union all
+select b.reId,count(distinct(a.id_)) as No_Of_KYC
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_Ptr]a
+inner join
+[FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchId=b.batchId
+group by b.reId
+union all
+select b.reId,count(distinct(a.id_)) as No_Of_KYC
+from fincore_bridge_db.fincore_bridge.fingate_Genreporting a
+inner join
+[FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchId=b.batchId
+group by b.reId
+union all
+select b.reId,count(distinct(a.id_)) as No_Of_KYC
+from fincore_bridge_db.fincore_bridge.fingate_Ccr a
+inner join
+[FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchId=b.batchId
+group by b.reId
+union all
+select b.reId,count(distinct(a.id_)) as No_Of_KYC
+from [FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].[fingate_CasinoCbwtr] a
+inner join
+[FINCORE_BRIDGE_DB].[FINCORE_BRIDGE].Fingate_batchupload b
+on a.batchId=b.batchId
+group by b.reId ) final_table
+group by final_table.reId
+), final_table as (
+select reId,reTypeId,report_count,batch_count,count_of_business,Total_Amount,Total_KYC,table1.Report_Type
+from
+table1
+inner join 
+table2
+on 
+table1.Re_Id=table2.Re_id and table1.Report_type=table2.Report_type
+inner join
+table3
+on
+table2.Re_id=table3.reid )
+select reId,reTypeId,count_of_business,sum(Total_KYC) as Total_KYC,
+sum (case when Report_Type = 'PTR' then total_amount else 0 end) as 'PTR_AMOUNT',
+sum (case when Report_Type = 'CTR' then total_amount else 0  end) as 'CTR_AMOUNT',
+sum (case when Report_Type = 'STR' then total_amount else 0 end) as 'STR_AMOUNT',
+sum (case when Report_Type = 'NTR' then total_amount else 0  end) as 'NTR_AMOUNT',
+sum (case when Report_Type = 'CBWTR' then total_amount else 0 end) as 'CBWTR_AMOUNT',
+sum (case when Report_Type = 'PTR' then report_count else 0 end) as 'PTR_Report',
+sum (case when Report_Type = 'CTR' then report_count else 0  end) as 'CTR_Report',
+sum (case when Report_Type = 'STR' then report_count else 0 end) as 'STR_Report',
+sum (case when Report_Type = 'NTR' then report_count else 0  end) as 'NTR_Report',
+sum (case when Report_Type = 'CBWTR' then report_count else 0 end) as 'CBWTR_Report',
+sum (case when Report_Type = 'PTR' then batch_count else 0 end) as 'PTR_Batch',
+sum (case when Report_Type = 'CTR' then batch_count else 0  end) as 'CTR_Batch',
+sum (case when Report_Type = 'STR' then batch_count else 0 end) as 'STR_Batch',
+sum (case when Report_Type = 'NTR' then batch_count else 0  end) as 'NTR_Batch',
+sum (case when Report_Type = 'CBWTR' then batch_count else 0 end) as 'CBWTR_Batch'
+from
+final_table
+group by reId,reTypeId,count_of_business
+
